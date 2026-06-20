@@ -212,14 +212,16 @@ unless a precision 5 V reference IC is fitted to AREF.
 
 ### Protocol for rotctld
 
-K3NG emulates **Yaesu GS-232B** protocol by default (`OPTION_GS_232B_EMULATION` is
-defined in `rotator_features.h`). In `hamlib` / `rotctld`:
+K3NG has `OPTION_GS_232B_EMULATION` enabled but responds correctly to GS-232A
+commands.  Use model **603** (GS-232A, AZ-only) — model 604 (GS-232B) sends the
+`C2` command expecting an AZ+EL pair, which K3NG does not return in an AZ-only
+build, causing hamlib to report "Feature not available".
 
 ```bash
-rotctld -m 604 -r /dev/ttyUSB0 -s 9600
+rotctld -m 603 -r /dev/ttyUSB0 -s 9600
 ```
 
-Model 604 = `ROT_MODEL_GS232B`. Verify the USB serial port with `dmesg | grep tty`
+Model 603 = `ROT_MODEL_GS232A`. Verify the USB serial port with `dmesg | grep tty`
 after plugging in the Arduino.
 
 ## Hardware Bill of Materials

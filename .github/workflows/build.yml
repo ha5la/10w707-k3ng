@@ -70,4 +70,4 @@ jobs:
 
             **After first flash:** connect at 9600 baud, rotate to both hard stops,
             use `\?AO` (CCW) and `\?AF` (CW) commands to calibrate ADC endpoints,
-            then `\Q` to save.  rotctld: `rotctld -m 604 -r /dev/ttyUSB0 -s 9600`
+            then `\Q` to save.  rotctld: `rotctld -m 603 -r /dev/ttyUSB0 -s 9600`
