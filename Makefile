@@ -1,10 +1,10 @@
 .PHONY: build upload monitor clean
 
 build:
-	pio run --project-dir firmware -e nano_old
+	pio run --project-dir firmware -e nano_new
 
 upload:
-	pio run --project-dir firmware -e nano_old --target upload
+	pio run --project-dir firmware -e nano_new --target upload
 
 monitor:
 	pio device monitor --project-dir firmware --baud 9600

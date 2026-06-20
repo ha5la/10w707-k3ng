@@ -41,6 +41,9 @@ for filename, patches in PATCHES.items():
     with open(path) as f:
         content = f.read()
     for old, new in patches:
+        if new in content:
+            print(f"copy_config.py: {filename}: already patched, skipping {new.strip()!r}")
+            continue
         if old not in content:
             print(f"copy_config.py ERROR: expected string not found in {filename}:")
             print(f"  {old!r}")
