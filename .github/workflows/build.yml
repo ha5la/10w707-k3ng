@@ -1,0 +1,75 @@
+name: Build K3NG Firmware
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (with K3NG submodule)
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini') }}
+          restore-keys: pio-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build (old + new bootloader variants)
+        run: pio run --project-dir firmware -e nano_old -e nano_new
+
+      - name: Collect firmware binaries
+        run: |
+          mkdir dist
+          cp firmware/.pio/build/nano_old/firmware.hex dist/k3ng_rotator_nano_old_bootloader.hex
+          cp firmware/.pio/build/nano_new/firmware.hex dist/k3ng_rotator_nano_new_bootloader.hex
+
+      - name: Upload artifacts (every build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-hex
+          path: dist/*.hex
+
+      - name: Create GitHub Release (tagged builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.hex
+          generate_release_notes: true
+          body: |
+            ## Firmware files
+
+            | File | Board |
+            |------|-------|
+            | `k3ng_rotator_nano_old_bootloader.hex` | CH340 Nano (hestore prod_10044467) and other pre-2018 / old-bootloader boards |
+            | `k3ng_rotator_nano_new_bootloader.hex` | Genuine post-2018 Arduino Nano |
+
+            Flash with avrdude (old bootloader, -b 57600):
+            ```
+            avrdude -c arduino -p atmega328p -P /dev/ttyUSB0 -b 57600 \
+              -U flash:w:k3ng_rotator_nano_old_bootloader.hex:i
+            ```
+            Or simply: `pio run --project-dir firmware --target upload`
+
+            **After first flash:** connect at 9600 baud, rotate to both hard stops,
+            use `\?AO` (CCW) and `\?AF` (CW) commands to calibrate ADC endpoints,
+            then `\Q` to save.  rotctld: `rotctld -m 604 -r /dev/ttyUSB0 -s 9600`

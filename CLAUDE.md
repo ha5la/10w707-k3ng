@@ -24,19 +24,18 @@ It must be replicated in the replacement control unit.
 
 ### 5-Wire Cable Pinout
 
-**These assignments are inferred from the schematic and must be verified
-with a multimeter before wiring the replacement unit.**
+Motor winding direction (pins 1/2) must be verified with a multimeter.
+Pot wiring (pins 3/4/5) is confirmed from the original schematic.
 
-| TB1 Pin | Signal (inferred) | Measurement to verify |
-|---------|--------------------|----------------------|
-| 1 | Motor winding A (CCW sense) | Continuity to one motor winding |
-| 2 | Motor winding B (CW sense) | Continuity to other motor winding |
-| 3 | AC neutral / common | Common to both motor windings and pot |
-| 4 | Potentiometer high-side terminal | Variable resistance to pin 3 across full travel |
-| 5 | Potentiometer signal output | Verify grounded wiper assumption |
+| TB1 Pin | Signal | Note |
+|---------|--------|------|
+| 1 | Motor winding A | Verify which direction is CW at first power-up |
+| 2 | Motor winding B | Swap with pin 1 if rotation direction is reversed |
+| 3 | AC neutral / motor common / pot wiper | Wiper confirmed grounded to motor common in original schematic |
+| 4 | Potentiometer terminal A | One fixed end of resistive track |
+| 5 | Potentiometer terminal B | Other fixed end of resistive track (complementary to pin 4) |
 
-Original schematic shows 6–8 V range at the pot interface (Note 3).
-Measure resistance of the pot from stop to stop (between pins 4 and 3, and 5 and 3) before building.
+Measure R(pin4–pin3) and R(pin5–pin3) stop-to-stop before building to determine R_max.
 
 ## Motor Control — Relay Design
 
@@ -123,38 +122,54 @@ CCW (2 relays).
 
 ### Signal conditioning
 
-The drive unit potentiometer has a grounded wiper (rheostat configuration).
-K3NG requires 0–5 V on Arduino pin A0, with 0 V = full CCW and 5 V = full CW.
+The drive unit pot has its wiper grounded to motor common (pin 3 = GND = DC−).
+Both fixed terminals are available on pins 4 and 5. As the antenna rotates CCW→CW:
+- R(pin4–GND) increases from 0 to R_max  → V4 rises
+- R(pin5–GND) decreases from R_max to 0  → V5 falls
+
+These signals are complementary and are combined in a difference amplifier for
+better linearity and noise rejection than a single divider.
 
 **Step 1 — measure the potentiometer:**
-Connect an ohmmeter between TB1 pin 4 and pin 3 (or 5) and rotate the antenna
-stop to stop. Record R_min (near 0 Ω), R_max, and R_mid. The nominal value is
-probably 500 Ω or 1 kΩ (typical CDE-era rotator).
+Connect an ohmmeter between pin 4 and pin 3 (then pin 5 and pin 3) and rotate
+stop to stop. Record R_max. Nominal value is probably 500 Ω or 1 kΩ.
 
-**Step 2 — voltage divider:**
-
-Per K3NG wiki recommendation: place a fixed resistor R_fixed equal to R_max in
-series with the pot (rheostat), supply the divider from a stable 10 V reference,
-and read the centre tap with Arduino A0.
+**Step 2 — two voltage dividers (V_ref = 5 V from Arduino AREF):**
 
 ```
-+10 V ─── R_fixed (= R_max) ─── TB1 pin 4
-                                       │
-                               pot wiper (TB1 pin 3 or 5, whichever is ground)
-                                       │
-                              A0 ─────── junction of R_fixed and pot
-                                       │
-                                      GND
++5 V ── R_fixed ──┬── pin 4 ── R(pin4→GND) ── GND    V4 read at ┬
+                  ┘                                               │
++5 V ── R_fixed ──┬── pin 5 ── R(pin5→GND) ── GND    V5 read at ┬
 ```
 
-This gives 0 V at full CCW, ~5 V at full CW. Adjust R_fixed or add a trim pot
-if the range is off.
+R_fixed = R_max (measure first). V4 swings 0–2.5 V, V5 swings 2.5–0 V.
 
-**If pot resistance < 500 Ω** (loading the Arduino ADC): buffer with an LM358
-op-amp (unity-gain follower) between the divider output and A0.
+**Why not a single divider?** With R_fixed = R_max the transfer function is
+`V = 5 × pos/(1+pos)`, a hyperbola. K3NG calibrates only the endpoints and
+linearly interpolates, producing up to **~60° heading error at the midpoint**.
 
-**10 V reference**: generate from 12 V supply with a 7810 (or 78L10) regulator,
-or use a resistor divider from a precise 12 V rail if pot loading is acceptable.
+**Step 3 — difference amplifier (one half of LM358):**
+
+```
+V5 ──R(10k)──┬── IN−
+              │ LM358           R_f (10k)
+              └─────────────────/\/\/──┬── V_out → A0
+                                       │
+V4 ──R(10k)──┬── IN+                  │
+              │                        │
+2.5V─R(10k)──┘    (2.5 V = two 10 kΩ from +5 V to GND)
+```
+
+`V_out = V4 − V5 + 2.5 V`
+
+| Position | V4 | V5 | V_out |
+|----------|----|----|-------|
+| Full CCW | 0 V | 2.5 V | 0 V |
+| Midpoint | 1.67 V | 1.67 V | 2.5 V |
+| Full CW | 2.5 V | 0 V | 5 V |
+
+Maximum heading error after K3NG linear calibration: **≈ 8°** (at quarter-points).
+Common-mode noise from the motor on the 35 m cable cancels in the subtraction.
 
 ### K3NG calibration
 
@@ -191,20 +206,20 @@ Repository: `https://github.com/k3ng/k3ng_rotator_controller`
 #define AZ_ROTATION_CAPABILITY_CCW 360
 ```
 
-Enable external analog reference for better ADC accuracy:
-```cpp
-#define OPTION_EXTERNAL_ANALOG_REFERENCE
-```
+Use the internal VCC (5 V) as ADC reference — the pot supply and AREF are the same
+rail, so the measurement is inherently ratiometric. Do not enable external reference
+unless a precision 5 V reference IC is fitted to AREF.
 
 ### Protocol for rotctld
 
-K3NG emulates **Yaesu GS-232A** protocol by default. In `hamlib` / `rotctld`:
+K3NG emulates **Yaesu GS-232B** protocol by default (`OPTION_GS_232B_EMULATION` is
+defined in `rotator_features.h`). In `hamlib` / `rotctld`:
 
 ```bash
-rotctld -m 603 -r /dev/ttyUSB0 -s 9600
+rotctld -m 604 -r /dev/ttyUSB0 -s 9600
 ```
 
-Model 603 = `ROT_MODEL_GS232A`. Verify the USB serial port with `dmesg | grep tty`
+Model 604 = `ROT_MODEL_GS232B`. Verify the USB serial port with `dmesg | grep tty`
 after plugging in the Arduino.
 
 ## Hardware Bill of Materials
@@ -214,40 +229,49 @@ after plugging in the Arduino.
 | 1 | Arduino Uno R3 | or Nano; provides USB-serial for rotctld |
 | 2 | DPDT relay | 5 V coil, ≥1 A/24 VAC contacts; e.g. Omron G2R-2-5V |
 | 1 | ULN2803A | Darlington array, relay driver |
-| 1 | Transformer | 230 VAC → 20 VAC, ≥3 VA (motor current ~100 mA) — or reuse original T1 |
+| 1 | T1 — transformer, motor | 230 VAC → 18–24 VAC, ≥3 VA |
+| 1 | T2 — transformer, electronics | 230 VAC → 12–15 VAC, ≥5 VA |
 | 1 | Capacitor | 120 µF / 250 VAC motor-run type (replaces original C1) |
-| 1 | Regulator | 78L10 or 7810 for 10 V pot supply |
-| 1 | Regulator | 7805 / LM7805 or switching 5 V module for Arduino |
-| 1 | Rectifier bridge | 1 A / 50 V, for DC supply from transformer secondary |
+| 1 | Regulator | 7805 / LM7805 — 5 V for Arduino, relay coils, pot supply |
+| 1 | Rectifier bridge | 1 A / 50 V, for T2 secondary |
 | 1 | Filter cap | 470–1000 µF / 25 V for DC rail |
-| 1 | Resistor R_fixed | = pot R_max (measure first), ¼ W |
-| 1 | LM358 op-amp | Optional; needed if pot R_max < 500 Ω |
+| 2 | Resistor R_fixed | = pot R_max each (measure first), ¼ W — one per divider |
+| 2 | Resistor 10 kΩ | 2.5 V reference divider for op-amp offset |
+| 4 | Resistor 10 kΩ | Difference amplifier (R1, R2, R3, R_f) |
+| 1 | LM358 op-amp | Difference amplifier for pot signal conditioning |
 | 5 | Terminal blocks | 5-way for tower cable; fused IEC inlet for 230 VAC |
 | 1 | Enclosure | Metal preferred (AC mains inside) |
 | 1 | Fuse | 125 mA fast-blow on 230 VAC line |
 
-**Reusing original T1**: The original transformer has a 120 V primary — it cannot be
-used directly on 230 V mains. Either rewind it (not worth it), or replace it with
-a standard 230 V → 20–24 VAC EI-core transformer (≥3 VA, very cheap).
-A 230 V → 2×12 V transformer with the secondaries in series gives 24 VAC,
-which is close enough (motor will run slightly faster and warmer; acceptable).
+The original T1 has a 120 V primary and cannot be reused on 230 V mains.
 
 ## Power Supply Architecture
 
+Two separate transformers are required. Tying a single secondary's neutral to DC−
+would cause the bridge rectifier to operate as half-wave. Two separate secondaries
+avoid this: T1 powers the motor only; T2 powers the electronics only. T1's neutral
+(= motor common = pin 3) is tied to T2's DC− to establish a shared ground.
+
 ```
-230 VAC ──[Fuse]──[Power switch]──── T1 primary (230 V)
-                                         │
-                           T1 secondary (20–24 VAC, ≥3 VA)
-                                    ┌────┴────┐
-                              20 VAC to       Rectifier bridge
-                              relay contacts  → 26–30 VDC
-                                              → 7810 → 10 V (pot supply)
-                                              → 7805 → 5 V (Arduino + relay coils)
+230 VAC ──[Fuse]──[Switch]──┬── T1 primary
+                             │     secondary HOT  ──── relay contacts (motor AC)
+                             │     secondary NEUTRAL ── pin 3 (motor common) ──┐
+                             │                                                  │= DC−
+                             └── T2 primary                                    │
+                                   secondary ──── bridge rectifier ────────────┘
+                                                  → filter cap (470–1000 µF)
+                                                  → 7805 → 5 V (Arduino, relay coils,
+                                                                 pot V_ref, op-amp)
 ```
 
-If relay coils are 12 V: add a 7812 regulator between the DC rail and the relay coils.
-Arduino can alternatively be powered from the PC USB port, keeping the 230 VAC
-supply only for the motor — simplifies the low-voltage side.
+| | T1 (motor) | T2 (DC electronics) |
+|-|------------|---------------------|
+| Primary | 230 VAC | 230 VAC |
+| Secondary | 18–24 VAC | 12–15 VAC |
+| Power | ≥ 3 VA | ≥ 5 VA |
+
+T2 secondary: 12 V AC → rectified ≈ 15.6 V DC → 7805 → 5 V.
+If relay coils are 12 V, add a 7812 between the DC rail and the relay coils.
 
 ## Battery Operation
 
@@ -271,10 +295,11 @@ Battery operation is not part of the primary design. Options if needed:
 
 Before building the relay board:
 
-1. **Measure pot resistance** stop-to-stop (pins 4–3 or 4–5 of TB1).
-2. **Verify cable pinout**: with motor disconnected, apply low-voltage AC to
-   each pair of wires and observe which motor terminals buzz/warm.
-3. **Confirm winding direction**: after first power-up, verify that K3NG CW
+1. **Measure pot resistance** stop-to-stop: R(pin4–pin3) and R(pin5–pin3).
+   Use R_max value for R_fixed in both voltage dividers.
+2. **Verify motor winding assignment** (pins 1 and 2): with motor disconnected,
+   apply low-voltage AC to each pair and observe which terminals buzz/warm.
+3. **Confirm rotation direction**: after first power-up, verify that K3NG CW
    command rotates the antenna clockwise. If reversed, swap W1/W2.
 4. **Check motor current** with a clamp meter before closing the enclosure.
    Should be < 200 mA at 20 VAC under no load.

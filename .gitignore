@@ -1,0 +1,8 @@
+# PlatformIO build artefacts
+firmware/.pio/
+
+# KiCad autosave / lock / backup files
+hardware/**/#auto_saved_files#
+hardware/**/_autosave-*
+hardware/**/~*.lck
+hardware/**/*-backups/

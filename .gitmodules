@@ -1,0 +1,3 @@
+[submodule "firmware/k3ng"]
+	path = firmware/k3ng
+	url = https://github.com/k3ng/k3ng_rotator_controller.git
