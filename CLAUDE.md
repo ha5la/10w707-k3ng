@@ -173,9 +173,18 @@ Common-mode noise from the motor on the 35 m cable cancels in the subtraction.
 
 ### K3NG calibration
 
-After wiring, run the rotator to both stops and record the raw ADC values shown
-in K3NG's calibration mode. Set `az_full_ccw` and `az_full_cw` in the firmware.
-The servo loop handles everything else.
+Calibration is interactive over the serial port (9600 baud) using standard
+Yaesu GS-232 commands.  No firmware recompile needed — values are stored in EEPROM.
+
+1. Open a serial terminal: `pio device monitor --project-dir firmware` (or `make monitor`)
+2. Rotate the antenna manually to the **full CCW** hard stop
+3. Send **`O`** → K3NG prints `Rotate to full CCW and send keystroke...` → press any key
+   → K3NG reads the ADC, saves `analog_az_full_ccw` to EEPROM, replies `Wrote to memory`
+4. Rotate to the **full CW** hard stop
+5. Send **`F`** → K3NG prints `Rotate to full CW and send keystroke...` → press any key
+   → saves `analog_az_full_cw` to EEPROM
+
+The servo loop then linearly interpolates all positions between the two endpoints.
 
 ## K3NG Firmware Configuration
 
