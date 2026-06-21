@@ -50,7 +50,10 @@ PATCHES = {
         # 1602A is 16x2, not 20x4
         ("#define LCD_COLUMNS 20 //16",    "#define LCD_COLUMNS 16"),
         ("#define LCD_ROWS 4 //2",         "#define LCD_ROWS 2"),
-        # Heading is already on row 1; move status to row 2 to avoid collision
+        # Move combined-heading row to 1 so OPTION_DISPLAY_HEADING overlaps
+        # OPTION_DISPLAY_HEADING_AZ_ONLY (same AZ content, same row — harmless),
+        # leaving row 2 uncontested for OPTION_DISPLAY_STATUS.
+        ("#define LCD_HEADING_ROW 2",      "#define LCD_HEADING_ROW 1"),
         ("#define LCD_STATUS_ROW 1",       "#define LCD_STATUS_ROW 2"),
         # 360-degree rotator — no overlap zone
         ("#define AZIMUTH_ROTATION_CAPABILITY_EEPROM_INITIALIZE 450",
