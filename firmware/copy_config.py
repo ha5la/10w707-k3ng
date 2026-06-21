@@ -30,9 +30,17 @@ PATCHES = {
         # Must be defined here (before rotator_dependencies.h) so FEATURE_LCD_DISPLAY is set
         ("// #define FEATURE_4_BIT_LCD_DISPLAY // Uncomment for classic 4 bit LCD display (most common)",
          "#define FEATURE_4_BIT_LCD_DISPLAY // Uncomment for classic 4 bit LCD display (most common)"),
-        # GS-232A is sufficient (we use rotctld -m 603); B emulation adds ~100+ bytes
-        ("#define OPTION_GS_232B_EMULATION          // comment this out to default to Yaesu GS-232A emulation when using FEATURE_YAESU_EMULATION above",
-         "// #define OPTION_GS_232B_EMULATION          // comment this out to default to Yaesu GS-232A emulation when using FEATURE_YAESU_EMULATION above"),
+        # Elevation-related options — no FEATURE_ELEVATION_CONTROL in this build
+        ("#define OPTION_EL_SPEED_FOLLOWS_AZ_SPEED    // changing the azimith speed with Yaesu X commands or an azimuth speed pot will also change elevation speed",
+         "// #define OPTION_EL_SPEED_FOLLOWS_AZ_SPEED    // changing the azimith speed with Yaesu X commands or an azimuth speed pot will also change elevation speed"),
+        ("#define OPTION_DISPLAY_HEADING_EL_ONLY",
+         "// #define OPTION_DISPLAY_HEADING_EL_ONLY"),
+        # AZ_ONLY and HEADING both render the same content on row 1 — keep only one
+        ("#define OPTION_DISPLAY_HEADING_AZ_ONLY",
+         "// #define OPTION_DISPLAY_HEADING_AZ_ONLY"),
+        # Version splash uses flash for the string constant and startup delay code
+        ("#define OPTION_DISPLAY_VERSION_ON_STARTUP  //code provided by Paolo, IT9IPQ",
+         "// #define OPTION_DISPLAY_VERSION_ON_STARTUP  //code provided by Paolo, IT9IPQ"),
         # Display slots for features we don't have (no RTC, no GPS, no moon/sun tracking)
         ("#define OPTION_DISPLAY_HHMM_CLOCK  // display HH:MM clock  (set position with #define LCD_HHMM_CLOCK_POSITION)",
          "// #define OPTION_DISPLAY_HHMM_CLOCK  // display HH:MM clock  (set position with #define LCD_HHMM_CLOCK_POSITION)"),
