@@ -55,6 +55,8 @@ PATCHES = {
          "#ifndef FEATURE_4_BIT_LCD_DISPLAY\n#define FEATURE_4_BIT_LCD_DISPLAY\n#endif\n"),
     ],
     "rotator_settings.h": [
+        # 250 ms gives responsive button feedback without saturating the LCD bus
+        ("#define LCD_UPDATE_TIME 1000",   "#define LCD_UPDATE_TIME 250"),
         # 1602A is 16x2, not 20x4
         ("#define LCD_COLUMNS 20 //16",    "#define LCD_COLUMNS 16"),
         ("#define LCD_ROWS 4 //2",         "#define LCD_ROWS 2"),
