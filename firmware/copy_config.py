@@ -60,6 +60,10 @@ PATCHES = {
         # 1602A is 16x2, not 20x4
         ("#define LCD_COLUMNS 20 //16",    "#define LCD_COLUMNS 16"),
         ("#define LCD_ROWS 4 //2",         "#define LCD_ROWS 2"),
+        # Field sizes must match LCD_COLUMNS; at 20 on a 16-col display print_center
+        # calculates a start column of (16/2)-(20/2)=-2, corrupting the adjacent row
+        ("#define LCD_HEADING_FIELD_SIZE 20",    "#define LCD_HEADING_FIELD_SIZE 16"),
+        ("#define LCD_STATUS_FIELD_SIZE 20",     "#define LCD_STATUS_FIELD_SIZE 16"),
         # Move combined-heading row to 1 so OPTION_DISPLAY_HEADING overlaps
         # OPTION_DISPLAY_HEADING_AZ_ONLY (same AZ content, same row — harmless),
         # leaving row 2 uncontested for OPTION_DISPLAY_STATUS.
