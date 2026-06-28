@@ -41,6 +41,10 @@ PATCHES = {
         # Version splash uses flash for the string constant and startup delay code
         ("#define OPTION_DISPLAY_VERSION_ON_STARTUP  //code provided by Paolo, IT9IPQ",
          "// #define OPTION_DISPLAY_VERSION_ON_STARTUP  //code provided by Paolo, IT9IPQ"),
+        # REQUEST_KILL on button release (vs REQUEST_STOP which adds ramp-down logic).
+        # Keeps the 200 ms debounce delay but stops the relay immediately after it.
+        ("// #define OPTION_BUTTON_RELEASE_NO_SLOWDOWN  // disables slowdown when CW or CCW button is released, or stop button is depressed",
+         "#define OPTION_BUTTON_RELEASE_NO_SLOWDOWN  // disables slowdown when CW or CCW button is released, or stop button is depressed"),
         # Display slots for features we don't have (no RTC, no GPS, no moon/sun tracking)
         ("#define OPTION_DISPLAY_HHMM_CLOCK  // display HH:MM clock  (set position with #define LCD_HHMM_CLOCK_POSITION)",
          "// #define OPTION_DISPLAY_HHMM_CLOCK  // display HH:MM clock  (set position with #define LCD_HHMM_CLOCK_POSITION)"),
@@ -53,6 +57,16 @@ PATCHES = {
         # Wrap with #ifndef so the define from rotator_features.h above isn't duplicated
         ("#define FEATURE_4_BIT_LCD_DISPLAY\n",
          "#ifndef FEATURE_4_BIT_LCD_DISPLAY\n#define FEATURE_4_BIT_LCD_DISPLAY\n#endif\n"),
+    ],
+    "rotator_k3ngdisplay.cpp": [
+        # update() skips setCursor() when writing consecutive changed characters, relying on
+        # HD44780 auto-increment.  Auto-increment does not cross the row boundary (0x0F→0x10,
+        # not 0x0F→0x40), so a change run that straddles row 0→1 writes the row-1 chars to
+        # off-screen DDRAM — they appear at the correct position only on the next update cycle,
+        # causing a brief flash on the wrong row.  Always calling setCursor (like redraw() does)
+        # eliminates the optimisation and prevents cross-row misplacement.
+        ("      if (!wrote_to_lcd_last_loop){\n        lcd.setCursor(Xposition(x),Yposition(x));\n      }",
+         "      lcd.setCursor(Xposition(x),Yposition(x));"),
     ],
     "rotator_settings.h": [
         # 250 ms gives responsive button feedback without saturating the LCD bus

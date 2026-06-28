@@ -11,5 +11,5 @@ monitor:
 
 # Reset K3NG submodule after building (copy_config.py patches 6 lines)
 clean:
-	git -C firmware/k3ng checkout -- k3ng_rotator_controller/rotator_features.h k3ng_rotator_controller/rotator_k3ngdisplay.h k3ng_rotator_controller/rotator_pins.h k3ng_rotator_controller/rotator_settings.h 2>/dev/null || true
+	git -C firmware/k3ng checkout -- k3ng_rotator_controller/rotator_features.h k3ng_rotator_controller/rotator_k3ngdisplay.h k3ng_rotator_controller/rotator_k3ngdisplay.cpp k3ng_rotator_controller/rotator_pins.h k3ng_rotator_controller/rotator_settings.h 2>/dev/null || true
 	rm -rf firmware/.pio
