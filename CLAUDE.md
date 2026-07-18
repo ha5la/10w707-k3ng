@@ -15,27 +15,30 @@ From the original schematic (Fig. 15, doc 964307):
 
 | Component | Value | Location | Note |
 |-----------|-------|----------|------|
-| M1 | 20 V, 60 Hz single-phase AC | Drive unit | Capacitor-run, two-winding; runs fine at 50 Hz (≈17% slower) |
-| R1 | 1 000 Ω | Drive unit | Snubber / speed-limit resistor across motor |
-| Position sensor | Bridge potentiometer | Drive unit | Grounded-wiper rheostat; actual resistance TBD |
+| M1 | 20 V, 60 Hz single-phase AC | Drive unit | Capacitor-run, two-winding; runs fine at 50 Hz (≈17% slower). **Measured: ≈6 Ω DC per winding. Original controller: ≈1 A per winding. New controller (24 V, 50 Hz): 1.5 A line-fed / 0.86 A cap-fed winding.** ~1.7 A (vector sum) in the common wire; ~18 W copper loss while running (warm is normal) |
+| R1 — position potentiometer | 1 000 Ω (measured: track ≈1 048 Ω) | Drive unit | Grounded-wiper bridge pot on pins 2/3 — *not* a snubber as previously documented. End stops don't reach the track ends: segments swing 106↔896 Ω and 152↔942 Ω (≈790 Ω usable per side) |
 
 The run capacitor **C1 (120 µF)** was in the original *control* unit, not the drive unit.
 It must be replicated in the replacement control unit.
 
 ### 5-Wire Cable Pinout
 
-Motor winding direction (pins 1/2) must be verified with a multimeter.
-Pot wiring (pins 3/4/5) is confirmed from the original schematic.
+Confirmed by DC measurements (2026-07-18, lead resistance 0.8 Ω subtracted):
+windings read ≈6 Ω from pins 1→5 and 4→5; conductors 1/4/5 are heavy gauge,
+2/3 light gauge. The cable shield is bonded to pin 5, which brings the
+common-path resistance to near zero.
 
-| TB1 Pin | Signal | Note |
-|---------|--------|------|
-| 1 | Motor winding A | Verify which direction is CW at first power-up |
-| 2 | Motor winding B | Swap with pin 1 if rotation direction is reversed |
-| 3 | AC neutral / motor common / pot wiper | Wiper confirmed grounded to motor common in original schematic |
-| 4 | Potentiometer terminal A | One fixed end of resistive track |
-| 5 | Potentiometer terminal B | Other fixed end of resistive track (complementary to pin 4) |
+| TB1 Pin | Signal | Wire R (35 m) | Note |
+|---------|--------|---------------|------|
+| 1 | Motor winding A (CCW) | 0.5 Ω | Winding ≈6 Ω DC to pin 5 |
+| 4 | Motor winding B (CW) | 0.3 Ω | Winding ≈6 Ω DC to pin 5 |
+| 5 | AC neutral / motor common / pot wiper | ≈0 Ω (shield in parallel) | = DC− / analog ground reference |
+| 2 | Potentiometer terminal A | 1.3 Ω | One fixed end of resistive track |
+| 3 | Potentiometer terminal B | 1.2 Ω | Other fixed end (complementary to pin 2) |
 
-Measure R(pin4–pin3) and R(pin5–pin3) stop-to-stop before building to determine R_max.
+Measured stop-to-stop (2026-07-18): R(2–5) swings 896↔106 Ω, R(3–5) swings
+152↔942 Ω — complementary, track total ≈1 048 Ω at every position. R_max ≈ 0.94 kΩ
+→ use **R_fixed = 1 kΩ**.
 
 ## Motor Control — Relay Design
 
@@ -68,9 +71,9 @@ Net assignments (KiCad net names in schematic):
 |-----|-------------|
 | AC_HOT | T1 secondary hot, K1.NO1(pin14), K2.NO1(pin14), C1.pin1 |
 | C1_JCT | C1.pin2, K1.NO2(pin24), K2.NO2(pin24) |
-| MOTOR_W1 | K1.COM1(pin12), K2.COM2(pin22), J2.pin1 |
-| MOTOR_W2 | K2.COM1(pin12), K1.COM2(pin22), J2.pin2 |
-| MOTOR_COM | J2.pin3 = AC Neutral |
+| MOTOR_W1 | K1.COM1(pin12), K2.COM2(pin22), J2 → tower wire 1 |
+| MOTOR_W2 | K2.COM1(pin12), K1.COM2(pin22), J2 → tower wire 4 |
+| MOTOR_COM | J2 → tower wire 5 = AC Neutral |
 
 Pin numbering follows IEC relay convention: x2=COM, x4=NO, x1=NC; coil=A1/A2.
 
@@ -82,7 +85,7 @@ AC_HOT ──┬── K1.pin14(NO1) ── K1.pin12(COM1) ── MOTOR_W1 ─�
           └───────────────────── C1 (120 µF) ──────────────────────────────────────── C1_JCT ─────┘
 
 K1.pin11(NC1), K1.pin21(NC2), K2.pin11(NC1), K2.pin21(NC2) → no_connect
-MOTOR_COM → AC Neutral (Tower wire 3)
+MOTOR_COM → AC Neutral (Tower wire 5)
 ```
 
 **CW active** (K1 energised, K2 off):
@@ -98,11 +101,16 @@ MOTOR_COM → AC Neutral (Tower wire 3)
 If the winding polarity turns out to be inverted (motor runs the wrong direction for CW command),
 swap W1 and W2 in the wiring; no firmware change needed.
 
+**50 Hz note:** C1 = 120 µF was sized for 60 Hz; the 50 Hz equivalent is ≈144 µF. This
+explains part of the measured winding-current asymmetry (1.5 A line-fed vs 0.86 A
+cap-fed). Optional: parallel an extra 25–30 µF motor-run capacitor to rebalance the
+phases and improve starting torque. Not required — the motor runs fine as-is.
+
 ### Relay specifications
 
 | Parameter | Minimum |
 |-----------|---------|
-| Contact rating | 1 A at 24 V AC (motor current is low — small fan motor class) |
+| Contact rating | ≥2 A at 24 V AC (measured motor current ≈1 A per winding; G2R-2 class 5 A parts have ample margin) |
 | Coil voltage | 5 V or 12 V (match your supply) |
 | Type | DPDT (2 Form C) |
 
@@ -122,27 +130,30 @@ CCW (2 relays).
 
 ### Signal conditioning
 
-The drive unit pot has its wiper grounded to motor common (pin 3 = GND = DC−).
-Both fixed terminals are available on pins 4 and 5. As the antenna rotates CCW→CW:
-- R(pin4–GND) increases from 0 to R_max  → V4 rises
-- R(pin5–GND) decreases from R_max to 0  → V5 falls
+The drive unit pot has its wiper grounded to motor common (pin 5 = GND = DC−).
+Both fixed terminals are available on pins 2 and 3. As the antenna rotates CCW→CW:
+- R(pin2–GND) increases from 0 to R_max  → V2 rises
+- R(pin3–GND) decreases from R_max to 0  → V3 falls
+(verify which end rises during calibration; swap labels if reversed)
 
 These signals are complementary and are combined in a difference amplifier for
 better linearity and noise rejection than a single divider.
 
-**Step 1 — measure the potentiometer:**
-Connect an ohmmeter between pin 4 and pin 3 (then pin 5 and pin 3) and rotate
-stop to stop. Record R_max. Nominal value is probably 500 Ω or 1 kΩ.
+**Step 1 — pot measured (2026-07-18):**
+R(2–5) swings 106↔896 Ω, R(3–5) swings 942↔152 Ω (complementary; track ≈1 048 Ω).
+Use **R_fixed = 1 kΩ**. Because the end stops don't reach the track ends, each
+divider output swings ≈0.5–2.4 V instead of 0–2.5 V — the usable span is
+≈1.8–1.9 V per 360°. K3NG endpoint calibration absorbs this.
 
 **Step 2 — two voltage dividers (V_ref = 5 V from Arduino AREF):**
 
 ```
-+5 V ── R_fixed ──┬── pin 4 ── R(pin4→GND) ── GND    V4 read at ┬
++5 V ── R_fixed ──┬── pin 2 ── R(pin2→GND) ── GND    V2 read at ┬
                   ┘                                               │
-+5 V ── R_fixed ──┬── pin 5 ── R(pin5→GND) ── GND    V5 read at ┬
++5 V ── R_fixed ──┬── pin 3 ── R(pin3→GND) ── GND    V3 read at ┬
 ```
 
-R_fixed = R_max (measure first). V4 swings 0–2.5 V, V5 swings 2.5–0 V.
+R_fixed = R_max (measure first). V2 swings 0–2.5 V, V3 swings 2.5–0 V.
 
 **Why not a single divider?** With R_fixed = R_max the transfer function is
 `V = 5 × pos/(1+pos)`, a hyperbola. K3NG calibrates only the endpoints and
@@ -151,18 +162,18 @@ linearly interpolates, producing up to **~60° heading error at the midpoint**.
 **Step 3 — difference amplifier (one half of LM358):**
 
 ```
-V5 ──R(10k)──┬── IN−
+V3 ──R(10k)──┬── IN−
               │ LM358           R_f (10k)
               └─────────────────/\/\/──┬── V_out → A0
                                        │
-V4 ──R(10k)──┬── IN+                  │
+V2 ──R(10k)──┬── IN+                  │
               │                        │
 2.5V─R(10k)──┘    (2.5 V = two 10 kΩ from +5 V to GND)
 ```
 
-`V_out = V4 − V5 + 2.5 V`
+`V_out = V2 − V3 + 2.5 V`
 
-| Position | V4 | V5 | V_out |
+| Position | V2 | V3 | V_out |
 |----------|----|----|-------|
 | Full CCW | 0 V | 2.5 V | 0 V |
 | Midpoint | 1.67 V | 1.67 V | 2.5 V |
@@ -170,6 +181,39 @@ V4 ──R(10k)──┬── IN+                  │
 
 Maximum heading error after K3NG linear calibration: **≈ 8°** (at quarter-points).
 Common-mode noise from the motor on the 35 m cable cancels in the subtraction.
+
+### Common-wire noise and filtering
+
+The pot's ground reference (wiper = motor common) and the Arduino's ground meet only
+through the shared common wire (pin 5) of the 35 m cable. While the motor runs, ~1.7 A
+(vector sum of 1.5 A + 0.86 A winding currents, ~90° apart) flows through that wire.
+Measured common-path resistance is ≈0–0.2 Ω (shield bonded in parallel with conductor 5).
+**Ground pump measured directly: 0.31 V AC RMS** between drive-end pin 5 and control-box
+DC− during rotation (2026-07-18). A single-ended ADC reading sees this almost 1:1;
+through the original 1 kΩ + 10 µF RC (f_c ≈ 16 Hz, only ~3× at 50 Hz) that leaves
+~95 mV of ripple — against the ≈1.8 V usable signal span that is **±19° of jitter**,
+matching the observed noise. The shield bond on pin 5 is load-bearing: without it the
+common resistance would be several times higher.
+
+The disturbance is a zero-mean 50 Hz sine and nothing clamps or rectifies ahead of the
+filter, so a passive RC low-pass settles to the exact undisturbed average — heavy
+filtering fully recovers the true position, even mid-rotation. Use a **two-stage RC**
+in front of A0 (a single 1 kΩ + 220 µF gets to ~±0.9°; the second stage costs one
+resistor and one capacitor, reaches ~±0.03°, and keeps margin if the shield bond
+degrades in the field):
+
+```
+signal ──1k──┬──10k──┬── A0
+           220µF   10µF
+             │       │
+            GND     GND
+```
+
+≈2000× rejection at 50 Hz (sub-millivolt residue), total lag ≈0.3 s (~2° at typical
+rotation speed — absorbed by the K3NG dead-band). Keep the last capacitor directly at
+the A0 pin. Firmware smoothing (`AZIMUTH_SMOOTHING_FACTOR`) is optional once the
+hardware filter is in place. Route the T1 secondary return straight to the terminal
+block so motor current does not flow through the Arduino's ground wiring.
 
 ### K3NG calibration
 
@@ -238,9 +282,9 @@ after plugging in the Arduino.
 | Qty | Part | Value / Notes |
 |-----|------|---------------|
 | 1 | Arduino Uno R3 | or Nano; provides USB-serial for rotctld |
-| 2 | DPDT relay | 5 V coil, ≥1 A/24 VAC contacts; e.g. Omron G2R-2-5V |
+| 2 | DPDT relay | 5 V coil, ≥2 A/24 VAC contacts; e.g. Omron G2R-2-5V (5 A) |
 | 1 | ULN2803A | Darlington array, relay driver |
-| 1 | T1 — transformer, motor | 230 VAC → 18–24 VAC, ≥3 VA |
+| 1 | T1 — transformer, motor | 230 VAC → 18–24 VAC; ≥40 VA at 24 V (measured windings 1.5 A + 0.86 A → ~1.7 A line ≈ 41 VA). An 18 V secondary cuts current ~25% and motor heating ~45%, closer to original drive levels |
 | 1 | T2 — transformer, electronics | 230 VAC → 12–15 VAC, ≥5 VA |
 | 1 | Capacitor | 120 µF / 250 VAC motor-run type (replaces original C1) |
 | 1 | Regulator | 7805 / LM7805 — 5 V for Arduino, relay coils, pot supply |
@@ -252,7 +296,7 @@ after plugging in the Arduino.
 | 1 | LM358 op-amp | Difference amplifier for pot signal conditioning |
 | 5 | Terminal blocks | 5-way for tower cable; fused IEC inlet for 230 VAC |
 | 1 | Enclosure | Metal preferred (AC mains inside) |
-| 1 | Fuse | 125 mA fast-blow on 230 VAC line |
+| 1 | Fuse | 315–400 mA slow-blow (T) on 230 VAC line (~150 mA steady draw + transformer inrush) |
 
 The original T1 has a 120 V primary and cannot be reused on 230 V mains.
 
@@ -261,12 +305,12 @@ The original T1 has a 120 V primary and cannot be reused on 230 V mains.
 Two separate transformers are required. Tying a single secondary's neutral to DC−
 would cause the bridge rectifier to operate as half-wave. Two separate secondaries
 avoid this: T1 powers the motor only; T2 powers the electronics only. T1's neutral
-(= motor common = pin 3) is tied to T2's DC− to establish a shared ground.
+(= motor common = pin 5) is tied to T2's DC− to establish a shared ground.
 
 ```
 230 VAC ──[Fuse]──[Switch]──┬── T1 primary
                              │     secondary HOT  ──── relay contacts (motor AC)
-                             │     secondary NEUTRAL ── pin 3 (motor common) ──┐
+                             │     secondary NEUTRAL ── pin 5 (motor common) ──┐
                              │                                                  │= DC−
                              └── T2 primary                                    │
                                    secondary ──── bridge rectifier ────────────┘
@@ -279,7 +323,7 @@ avoid this: T1 powers the motor only; T2 powers the electronics only. T1's neutr
 |-|------------|---------------------|
 | Primary | 230 VAC | 230 VAC |
 | Secondary | 18–24 VAC | 12–15 VAC |
-| Power | ≥ 3 VA | ≥ 5 VA |
+| Power | ≥ 40 VA (at 24 V) | ≥ 5 VA |
 
 T2 secondary: 12 V AC → rectified ≈ 15.6 V DC → 7805 → 5 V.
 If relay coils are 12 V, add a 7812 between the DC rail and the relay coils.
@@ -306,15 +350,21 @@ Battery operation is not part of the primary design. Options if needed:
 
 Before building the relay board:
 
-1. **Measure pot resistance** stop-to-stop: R(pin4–pin3) and R(pin5–pin3).
-   Use R_max value for R_fixed in both voltage dividers.
-2. **Verify motor winding assignment** (pins 1 and 2): with motor disconnected,
-   apply low-voltage AC to each pair and observe which terminals buzz/warm.
+1. **Pot resistance: measured** (2026-07-18) — R(2–5) 896↔106 Ω, R(3–5) 152↔942 Ω;
+   track ≈1 048 Ω; R_fixed = 1 kΩ.
+2. **Motor winding assignment: confirmed** — windings measure ≈6 Ω each from
+   pins 1→5 and 4→5 (2026-07-18).
 3. **Confirm rotation direction**: after first power-up, verify that K3NG CW
    command rotates the antenna clockwise. If reversed, swap W1/W2.
-4. **Check motor current** with a clamp meter before closing the enclosure.
-   Should be < 200 mA at 20 VAC under no load.
+4. **Motor current: measured** — original controller: ≈1 A per winding; new controller
+   (24 V, 50 Hz): 1.5 A line-fed / 0.86 A cap-fed. Verify T1 does not sag or overheat
+   during a full 360° rotation (torque goes with V²; check secondary voltage under
+   load), and check motor housing temperature after repeated moves (~18 W copper loss
+   vs ~12 W with the original controller).
 5. **Calibrate ADC**: run antenna to both hard stops; record K3NG raw ADC values.
+6. **Ground-pump cross-check: measured 0.31 V AC RMS** between drive-end pin 5 and
+   control-box DC− during rotation (2026-07-18) — confirms the noise mechanism and
+   magnitude exactly.
 
 ## Repository Structure (planned)
 
