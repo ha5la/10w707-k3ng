@@ -16,5 +16,14 @@ over GS-232 serial. A0 jumpered to GND (CW tests) or 5 V (CCW tests).
 | `dds-05-soft-start.png` | Start ramp: MUTE/STBY release first, then amplitude grows to full in ~0.5 s, quadrature intact throughout |
 | `dds-06-soft-stop.png` | Stop ramp (triggered on D6 falling edge): ~0.5 s decay to flat 2.5 V; MUTE/STBY drop only after the amplitude reaches zero |
 
-All PNGs pngquant-compressed (`--quality=70-90 --strip`); originals live in the
+Setup photos (1936 px wide to match the screenshots, EXIF stripped):
+
+| File | What it shows |
+|------|---------------|
+| `setup-01-bench-overview.jpg` | The whole bench: VirtualBench VB-8012 with MSO ribbon + logic pod, Linux laptop, Uno + breadboard, station gear behind |
+| `setup-02-rc-filters-closeup.jpg` | The two 1.2 kΩ + 100 nF RC filters on the breadboard, scope probe attached |
+| `setup-03-uno-wiring.jpg` | Arduino Uno (bench stand-in for the Nano) wired to the filters and probes |
+
+All PNGs pngquant-compressed (`--quality=70-90 --strip`), JPEGs
+jpegoptim-compressed (`--strip-all --max=85`); originals live in the
 VirtualBench session exports.
