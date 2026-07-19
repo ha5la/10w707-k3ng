@@ -46,7 +46,8 @@ motor common to *float* at the wiper potential (T1's secondary is **not** bonded
 to DC− in that build, contrary to the power-architecture sketch below; the
 0.31 V AC measured pin5↔DC− confirms the float). The quadrature-drive design
 grounds wire 5 (the SE amplifiers need a solid common), reads **wire 2** through
-the 5 V → 1.2 kΩ divider on A0 (the first filter resistor doubles as R_fixed),
+the 5 V → 820 Ω divider on A0 (the divider top doubles as the first filter
+resistor; 820 Ω beats 1.2 k by ~18% span at equal worst-case resolution),
 leaves wire 3 spare, and linearizes the divider's hyperbolic transfer exactly in
 firmware (`firmware2/src/position.cpp`: R = R_fixed·raw/(4092−raw), linear in
 angle; an inexact R_fixed only scales R, which calibration absorbs).

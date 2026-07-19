@@ -58,9 +58,10 @@
 // V is a hyperbola in R; position_ohms() inverts it exactly, and R is linear
 // in angle, so two-point calibration stays exact. Wire 3 is spare.
 #define POS_ADC_SAMPLES      16    // oversample burst, sum decimated to 12 bit
-// As built: 1.2k (the first filter resistor doubles as the divider top).
+// Divider top = first filter resistor. 820R chosen over 1.2k: ~18% more span
+// (0.57-2.61 V for the 106-896 ohm swing) at equal worst-case resolution.
 // An inexact value only scales R linearly; two-point calibration absorbs it.
-#define POS_R_FIXED          1200
+#define POS_R_FIXED          820
 // Defaults from shop measurements (2026-07-19): R(2-5) swings 106..896 ohm
 // between the end stops. O / F store the real endpoints (in ohms) in EEPROM.
 #define CAL_DEFAULT_R_CCW    106
