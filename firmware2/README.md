@@ -41,8 +41,10 @@ ignored — the servo profiles speed itself.
 
 ## Bring-up plan (bench, in order)
 
-1. **DDS on a scope**: D9/D10 through the RC filters — verify two clean sines,
-   90° apart, amplitude tracking frequency, direction flip on `L`/`R`.
+1. **DDS on a scope** — ✅ done 2026-07-19 (Uno + VirtualBench, 1.2k/100n RC):
+   60 Hz both directions with ±90° flip, V/f amplitude tracking in the taper
+   zone (16 Hz @ ~2 Vpp), soft start/stop ramps ~0.5 s, MUTE/STBY sequencing
+   correct (unmute before ramp-up, mute only after ramp-down completes).
 2. **Amps into dummy load** (power resistor ~20 Ω): verify 18 V RMS at 60 Hz,
    mute sequencing, heatsink temperature.
 3. **Motor on the bench**: starting behaviour at 5–15 Hz, full-speed run,
