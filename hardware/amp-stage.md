@@ -34,38 +34,23 @@ Bring-up: start with the boost at ~30 V, raise to 52 V when clean.
 
 ## Per-channel schematic (build two; identical except the DDS pin and winding)
 
-```
-                 +52 V ──┬── 1000 µF ─ GND          (bulk, at pins 7+13)
-                         ├── 100 nF ─ GND
-                         ├──────────────── pins 7, 13
-                         │
-                        22k
-                         ├────────────────  VREF  (≈ 26 V) ── pin 4
-                        22k                  │
-                         │                  47 µF
-                        GND                  │
-                                            GND
+![Amplifier stage schematic](amp-stage.svg)
 
-  from DDS ──── 10k trim ──── 470 nF ───┬── pin 3 (IN+)
-  (D9 or D10 →                          │
-   1.2k + 100 nF RC)                   22k
-                                        │
-                                      VREF
+Gain = 1 + 22k/1.2k ≈ 19.3 (25.7 dB); the AC-coupled feedback leg makes DC
+gain unity, so OUT self-centers at VREF.
 
-  pin 2 (IN−) ──┬── 22k ─────────────────────┐   gain = 1 + 22k/1.2k
-                │                            │        ≈ 19.3 (25.7 dB)
-                └── 1.2k ── 22 µF ── GND     │   DC gain = 1 → OUT sits at VREF
-                                             │
-  pin 6 ── 22 µF (bootstrap) ──┬─────────────┤
-                               │             │
-  pin 14 (OUT) ────────────────┴─────────────┴──┬── + 4700 µF/63 V ──► winding hot
-                                                │        (tower wire 1 or 4)
-                                                └── 10 Ω ── 100 nF ── GND  (Zobel)
+Component notes — corners chosen for 5 Hz drive, not audio:
 
-  pins 1, 8, 15 ── GND
-  pin 9 (STBY) ── 22k ── STBY line (Arduino D7)     10 µF from pin 9 to GND
-  pin 10 (MUTE) ── 10k ── MUTE line (Arduino D6)    10 µF from pin 10 to GND
-```
+- **C_in = 4.7 µF** (≥50 V; film, or electrolytic + toward the amp). With the
+  22 k bias impedance the corner is 1.5 Hz. (A 470 nF "audio" value would put
+  the corner at 15 Hz and lose 10 dB at the 5 Hz crawl.) This cap is also what
+  aligns the levels: the Arduino side sits at 2.5 V DC, the amp side at
+  VREF ≈ 26 V — the cap absorbs the difference, only the AC swing passes.
+- **Feedback cap = 220 µF / 50 V, + toward IN−**: in single-supply operation it
+  charges to VREF (≈26 V), hence the voltage rating; 1.2 k × 220 µF puts the
+  gain corner at 0.6 Hz. (The datasheet's 22 µF would roll gain off below 6 Hz.)
+- Both channels share the same corner frequencies, so whatever phase shift the
+  coupling networks add is identical in both — the 90° quadrature is preserved.
 
 ## Shared connections
 
@@ -97,7 +82,9 @@ between them is preserved.
 
 1. Boost at ~30 V, no load, both TDA7294 muted: check VREF ≈ Vs/2, OUT ≈ Vs/2.
 2. 22 Ω dummy loads, 60 Hz drive: trim both channels to equal amplitude;
-   scope for oscillation (Zobel fitted), feel heatsink.
+   scope for oscillation (Zobel fitted), feel heatsink. (22 Ω ≈ |Z| of a
+   winding at 60 Hz — measured 20 V / 1 A, mostly inductive; the 6 Ω figure
+   is DC resistance only and is not the operating point.)
 3. Boost to 52 V, repeat; verify ~18 V RMS, mute sequencing (no thump).
 4. Motor: starting behaviour at 5–15 Hz, reversal, winding currents
    (expect symmetric ~1 A), motor + heatsink temperature after full rotations.
