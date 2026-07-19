@@ -211,7 +211,11 @@ signal ──1k──┬──10k──┬── A0
 
 ≈2000× rejection at 50 Hz (sub-millivolt residue), total lag ≈0.3 s (~2° at typical
 rotation speed — absorbed by the K3NG dead-band). Keep the last capacitor directly at
-the A0 pin. Firmware smoothing (`AZIMUTH_SMOOTHING_FACTOR`) is optional once the
+the A0 pin. **Built and verified 2026-07-19** (demo: https://youtu.be/8H4QaBuDpxM).
+Expect a ~2 s settling transient at power-up while the caps charge — the reading ramps
+from full-CCW to the true heading. This is inherent (settling time scales with the
+50 Hz rejection for any RC filter) and harmless: K3NG never rotates on its own at
+boot, so don't trust the displayed heading in the first ~2 seconds. Firmware smoothing (`AZIMUTH_SMOOTHING_FACTOR`) is optional once the
 hardware filter is in place. Route the T1 secondary return straight to the terminal
 block so motor current does not flow through the Arduino's ground wiring.
 
