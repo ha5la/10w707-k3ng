@@ -53,13 +53,18 @@
 #define SERVO_SOFT_LIMIT_DEG10 30 // block manual drive within 3 deg of end stop
 
 // ---- Position ---------------------------------------------------------------
-#define POS_ADC_SAMPLES      8
-// Calibration defaults from the measured divider span (0.48-2.36 V) until
-// O / F commands store real endpoints in EEPROM.
-#define CAL_DEFAULT_RAW_CCW  98
-#define CAL_DEFAULT_RAW_CW   483
+// Quadrature-drive sensing: motor common (tower 5 = pot wiper) is GND; A0
+// reads tower wire 2 through the divider 5V -> 1k -> A0 -> R(segment) -> GND.
+// V is a hyperbola in R; position_ohms() inverts it exactly, and R is linear
+// in angle, so two-point calibration stays exact. Wire 3 is spare.
+#define POS_ADC_SAMPLES      16    // oversample burst, sum decimated to 12 bit
+#define POS_R_FIXED          1000  // divider top resistor (= first filter R), ohms
+// Defaults from shop measurements (2026-07-19): R(2-5) swings 106..896 ohm
+// between the end stops. O / F store the real endpoints (in ohms) in EEPROM.
+#define CAL_DEFAULT_R_CCW    106
+#define CAL_DEFAULT_R_CW     896
 #define CAL_EEPROM_ADDR      0
-#define CAL_EEPROM_MAGIC     0x4B52  // "KR"
+#define CAL_EEPROM_MAGIC     0x4B53  // "KS" — bumped: calibration now in ohms
 
 // ---- Display ----------------------------------------------------------------
 #define DISPLAY_UPDATE_MS    250

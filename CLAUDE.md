@@ -40,6 +40,16 @@ Measured stop-to-stop (2026-07-18): R(2–5) swings 896↔106 Ω, R(3–5) swing
 152↔942 Ω — complementary, track total ≈1 048 Ω at every position. R_max ≈ 0.94 kΩ
 → use **R_fixed = 1 kΩ**.
 
+**Sensing topologies:** the relay-era build reads the pot **wiper** (wire 5)
+directly on A0, with wire 2 = 5 V and wire 3 = GND — linear, but it requires the
+motor common to *float* at the wiper potential (T1's secondary is **not** bonded
+to DC− in that build, contrary to the power-architecture sketch below; the
+0.31 V AC measured pin5↔DC− confirms the float). The quadrature-drive design
+grounds wire 5 (the SE amplifiers need a solid common), reads **wire 2** through
+the 5 V → 1 kΩ divider on A0, leaves wire 3 spare, and linearizes the divider's
+hyperbolic transfer exactly in firmware (`firmware2/src/position.cpp`:
+R = 1k·raw/(4092−raw), linear in angle). Recalibrate `O`/`F` after rewiring.
+
 ## Motor Control — Relay Design
 
 ### Why relays
@@ -158,6 +168,9 @@ R_fixed = R_max (measure first). V2 swings 0–2.5 V, V3 swings 2.5–0 V.
 **Why not a single divider?** With R_fixed = R_max the transfer function is
 `V = 5 × pos/(1+pos)`, a hyperbola. K3NG calibrates only the endpoints and
 linearly interpolates, producing up to **~60° heading error at the midpoint**.
+*(Quadrature-drive update: this objection — and the difference amplifier below —
+are obsolete on the `quadrature-drive` branch: the custom firmware inverts the
+divider exactly, so the single divider is linear after calibration.)*
 
 **Step 3 — difference amplifier (one half of LM358):**
 

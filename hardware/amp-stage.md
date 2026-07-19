@@ -78,6 +78,21 @@ The output cap + 20 Ω winding form a 1.7 Hz high-pass: at the 5 Hz crawl this
 costs ~0.5 dB and ~19° phase — equal in both channels, so the 90° quadrature
 between them is preserved.
 
+## Position sensing under this drive
+
+Grounding wire 5 (motor common **and** pot wiper) would pin the relay-era
+wiper-on-A0 reading to 0 V. Rewire the sensing at the terminal block:
+
+- 5 V → 1 kΩ (the existing first filter resistor) → A0 node → **tower wire 2**
+- tower wire 3: spare (optionally a second divider to A1 later — the two
+  segments must sum to the ≈1 048 Ω track, a free cable-health check)
+- tower wire 5: GND (star point), as this schematic requires
+
+The divider's hyperbolic V(R) is inverted exactly in firmware
+(`position_ohms()`), and R is linear in angle — no difference amplifier
+needed. Expected span ≈ 0.48–2.36 V for the measured 106–896 Ω swing.
+Recalibrate `O`/`F` after the rewire (calibration is stored in ohms now).
+
 ## Bring-up checklist
 
 1. Boost at ~30 V, no load, both TDA7294 muted: check VREF ≈ Vs/2, OUT ≈ Vs/2.
