@@ -64,8 +64,8 @@ void dds_init() {
   pinMode(PIN_DRIVE_COS, OUTPUT);
   pinMode(PIN_AMP_MUTE, OUTPUT);
   pinMode(PIN_AMP_STBY, OUTPUT);
-  digitalWrite(PIN_AMP_MUTE, HIGH);  // ULN2803 inverts: HIGH = muted
-  digitalWrite(PIN_AMP_STBY, HIGH);  // HIGH = standby
+  digitalWrite(PIN_AMP_MUTE, LOW);   // LOW = muted (pull-downs hold this in reset)
+  digitalWrite(PIN_AMP_STBY, LOW);   // LOW = standby
 
   // Timer1: fast PWM 8-bit, non-inverting on OC1A/OC1B, no prescale (62.5 kHz)
   TCCR1A = _BV(COM1A1) | _BV(COM1B1) | _BV(WGM10);
@@ -116,7 +116,7 @@ void dds_tick(uint32_t now_ms) {
   else return;
   amp = a;
 
-  // Amp powered whenever we drive; muted (via inverting ULN2803) when silent.
-  digitalWrite(PIN_AMP_STBY, a == 0 ? HIGH : LOW);
-  digitalWrite(PIN_AMP_MUTE, a == 0 ? HIGH : LOW);
+  // Amp powered whenever we drive; muted and in standby when silent.
+  digitalWrite(PIN_AMP_STBY, a == 0 ? LOW : HIGH);
+  digitalWrite(PIN_AMP_MUTE, a == 0 ? LOW : HIGH);
 }
