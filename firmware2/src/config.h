@@ -1,0 +1,68 @@
+#pragma once
+
+// ---- Pin map (Arduino Nano, ATmega328P) -------------------------------------
+// Timer1 PWM carriers -> RC low-pass -> attenuator -> TDA7294 inputs.
+// D9/D10 are fixed by hardware (OC1A/OC1B); everything else matches the
+// existing K3NG-era wiring so the perfboard changes stay minimal.
+
+#define PIN_DRIVE_SIN     9   // OC1A — winding W1 (tower wire 1)
+#define PIN_DRIVE_COS     10  // OC1B — winding W2 (tower wire 4)
+
+// TDA7294 control pins, driven through the ULN2803 channels freed by the relays.
+// ULN2803 inverts: Arduino HIGH pulls the amp pin low = muted/standby asserted.
+#define PIN_AMP_MUTE      6   // amp MUTE
+#define PIN_AMP_STBY      7   // amp STAND-BY
+
+#define PIN_AZ            A0  // position pot via two-stage RC filter
+
+#define PIN_BUTTON_CW     A2
+#define PIN_BUTTON_CCW    A3
+
+// 16x2 LCD, 4-bit, K3NG standard wiring
+#define PIN_LCD_RS        12
+#define PIN_LCD_E         11
+#define PIN_LCD_D4        5
+#define PIN_LCD_D5        4
+#define PIN_LCD_D6        3
+#define PIN_LCD_D7        2
+
+// ---- Serial -----------------------------------------------------------------
+#define SERIAL_BAUD       9600  // GS-232A subset, rotctld model 603
+
+// ---- Drive ------------------------------------------------------------------
+// Frequencies in deci-Hz. Motor design point: 20 V / 60 Hz (0.3 V/Hz).
+// Quadrature drive holds 90 degrees at every frequency, so the usable range is
+// limited only by slip at the bottom and design flux at the top.
+#define DRIVE_FREQ_MIN_DHZ   50   //  5 Hz crawl (approach speed)
+#define DRIVE_FREQ_MAX_DHZ  600   // 60 Hz full speed
+
+// V/f amplitude law: amp = AMP_FLOOR + ((dHz - FREQ_MIN) * AMP_SLOPE) >> 8.
+// AMP 255 = full output = 18 V RMS per winding (52 V rail assumed).
+// AMP_FLOOR compensates the ~6 ohm winding IR drop at crawl speed.
+#define DRIVE_AMP_FLOOR      70
+#define DRIVE_AMP_SLOPE      86   // reaches ~255 at 600 dHz
+
+// Soft start/stop: amplitude slews one step per DDS tick (2 ms) -> ~0.5 s 0..255
+#define DRIVE_AMP_SLEW_MS    2
+
+// ---- Servo ------------------------------------------------------------------
+#define SERVO_TICK_MS        20
+#define SERVO_DEADBAND_DEG10 20   // +/- 2.0 degrees
+#define SERVO_TAPER_DEG10    150  // start slowing below 15 degrees of error
+#define SERVO_SOFT_LIMIT_DEG10 30 // block manual drive within 3 deg of end stop
+
+// ---- Position ---------------------------------------------------------------
+#define POS_ADC_SAMPLES      8
+// Calibration defaults from the measured divider span (0.48-2.36 V) until
+// O / F commands store real endpoints in EEPROM.
+#define CAL_DEFAULT_RAW_CCW  98
+#define CAL_DEFAULT_RAW_CW   483
+#define CAL_EEPROM_ADDR      0
+#define CAL_EEPROM_MAGIC     0x4B52  // "KR"
+
+// ---- Display ----------------------------------------------------------------
+#define DISPLAY_UPDATE_MS    250
+
+// ---- Buttons ----------------------------------------------------------------
+#define BUTTON_TICK_MS       10
+#define BUTTON_DEBOUNCE_TICKS 3
