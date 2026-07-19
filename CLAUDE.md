@@ -46,9 +46,11 @@ motor common to *float* at the wiper potential (T1's secondary is **not** bonded
 to DC− in that build, contrary to the power-architecture sketch below; the
 0.31 V AC measured pin5↔DC− confirms the float). The quadrature-drive design
 grounds wire 5 (the SE amplifiers need a solid common), reads **wire 2** through
-the 5 V → 1 kΩ divider on A0, leaves wire 3 spare, and linearizes the divider's
-hyperbolic transfer exactly in firmware (`firmware2/src/position.cpp`:
-R = 1k·raw/(4092−raw), linear in angle). Recalibrate `O`/`F` after rewiring.
+the 5 V → 1.2 kΩ divider on A0 (the first filter resistor doubles as R_fixed),
+leaves wire 3 spare, and linearizes the divider's hyperbolic transfer exactly in
+firmware (`firmware2/src/position.cpp`: R = R_fixed·raw/(4092−raw), linear in
+angle; an inexact R_fixed only scales R, which calibration absorbs).
+Recalibrate `O`/`F` after rewiring.
 
 ## Motor Control — Relay Design
 
@@ -203,20 +205,21 @@ through the shared common wire (pin 5) of the 35 m cable. While the motor runs, 
 Measured common-path resistance is ≈0–0.2 Ω (shield bonded in parallel with conductor 5).
 **Ground pump measured directly: 0.31 V AC RMS** between drive-end pin 5 and control-box
 DC− during rotation (2026-07-18). A single-ended ADC reading sees this almost 1:1;
-through the original 1 kΩ + 10 µF RC (f_c ≈ 16 Hz, only ~3× at 50 Hz) that leaves
-~95 mV of ripple — against the ≈1.8 V usable signal span that is **±19° of jitter**,
-matching the observed noise. The shield bond on pin 5 is load-bearing: without it the
+the original input network (10 nF on the wiper side, then a series 1.2 kΩ to A0 —
+f_c ≈ 13 kHz, an RF filter with no rejection at 50 Hz) passed the full 0.31 V —
+against the wiper's ≈3.8 V/360° span that is **±29° RMS of jitter**, matching the
+observed noise. The shield bond on pin 5 is load-bearing: without it the
 common resistance would be several times higher.
 
 The disturbance is a zero-mean 50 Hz sine and nothing clamps or rectifies ahead of the
 filter, so a passive RC low-pass settles to the exact undisturbed average — heavy
 filtering fully recovers the true position, even mid-rotation. Use a **two-stage RC**
-in front of A0 (a single 1 kΩ + 220 µF gets to ~±0.9°; the second stage costs one
-resistor and one capacitor, reaches ~±0.03°, and keeps margin if the shield bond
+in front of A0 (a single 1.2 kΩ + 220 µF gets to ~±0.4°; the second stage costs one
+resistor and one capacitor, reaches ~±0.02°, and keeps margin if the shield bond
 degrades in the field):
 
 ```
-signal ──1k──┬──10k──┬── A0
+signal ──1.2k──┬──10k──┬── A0
            220µF   10µF
              │       │
             GND     GND

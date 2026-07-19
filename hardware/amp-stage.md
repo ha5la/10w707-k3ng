@@ -83,14 +83,15 @@ between them is preserved.
 Grounding wire 5 (motor common **and** pot wiper) would pin the relay-era
 wiper-on-A0 reading to 0 V. Rewire the sensing at the terminal block:
 
-- 5 V → 1 kΩ (the existing first filter resistor) → A0 node → **tower wire 2**
+- 5 V → 1.2 kΩ (the existing first filter resistor) → A0 node → **tower wire 2**
 - tower wire 3: spare (optionally a second divider to A1 later — the two
   segments must sum to the ≈1 048 Ω track, a free cable-health check)
 - tower wire 5: GND (star point), as this schematic requires
 
 The divider's hyperbolic V(R) is inverted exactly in firmware
 (`position_ohms()`), and R is linear in angle — no difference amplifier
-needed. Expected span ≈ 0.48–2.36 V for the measured 106–896 Ω swing.
+needed. Expected span ≈ 0.41–2.14 V for the measured 106–896 Ω swing with
+R_fixed = 1.2 kΩ.
 Recalibrate `O`/`F` after the rewire (calibration is stored in ohms now).
 
 ## Bring-up checklist
