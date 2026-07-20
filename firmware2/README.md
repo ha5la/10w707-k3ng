@@ -57,3 +57,12 @@ ignored — the servo profiles speed itself.
 
 ATmega328P: 30 720 B flash / 2 048 B RAM. Track with `pio run` after every
 change; keep flash < 50% — headroom is the point of this rewrite.
+
+## Tests
+
+`pio test -e native` runs 24 host-side Unity tests (no hardware): position
+linearization + calibration, GS-232 parsing, DDS envelope/quadrature/V-f,
+reversal-through-zero sequencing, button interlocks, soft limits. CI runs
+them before every AVR build (`.github/workflows/firmware2.yml`). Write the
+test first when adding behavior — the mocks in `test/mocks/` control the
+clock, ADC, pins and EEPROM.
