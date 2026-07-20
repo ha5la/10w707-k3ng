@@ -3,8 +3,8 @@
 Drives the 10W707's two motor windings with sin/cos from the firmware2 DDS.
 References: ST TDA7294 datasheet (April 2003) — Figure 1 (typical application,
 our base circuit), Figure 16 (turn on/off sequence — implemented by firmware2's
-MUTE/STBY sequencing), Figure 17 (single-signal mute/stby — we drive them
-separately instead). Note: the TDA7294 datasheet itself has *no* single-supply
+amplitude ramps), Figure 17 (single-signal mute/stby — exactly our scheme: one
+enable line, the per-pin RCs do the sequencing). Note: the TDA7294 datasheet itself has *no* single-supply
 figure; the single-supply pattern below follows the TDA7293 datasheet's
 "single supply amplifier" configuration, adapted.
 
@@ -26,8 +26,8 @@ Bring-up: start with the boost at ~30 V, raise to 52 V when clean.
 | 6 | BOOTSTRAP | 22 µF to OUT |
 | 7 | +Vs (signal) | +52 V |
 | 8 | −Vs (signal) | GND |
-| 9 | ST-BY | 22 kΩ ← Arduino D7 line (+10 µF at pin to GND) |
-| 10 | MUTE | 10 kΩ ← Arduino D6 line (+10 µF at pin to GND) |
+| 9 | ST-BY | 22 kΩ ← AMP_EN line (+10 µF at pin to GND) |
+| 10 | MUTE | 10 kΩ ← AMP_EN line (+10 µF at pin to GND) |
 | 13 | +PWVs (power) | +52 V |
 | 14 | OUT | bootstrap, feedback, Zobel, output cap |
 | 15 | −PWVs (power) | GND |
@@ -57,8 +57,7 @@ Component notes — corners chosen for 5 Hz drive, not audio:
 | Net | Connection |
 |-----|-----------|
 | GND | boost −out, both channels, motor common (tower wire 5 + shield), Arduino GND |
-| MUTE line | Arduino D6 → both pin-10 resistors; 10 kΩ pull-down to GND |
-| STBY line | Arduino D7 → both pin-9 resistors; 10 kΩ pull-down to GND |
+| AMP_EN line | Arduino D6 → all four series resistors (both chips' MUTE 10 kΩ and STBY 22 kΩ); one 10 kΩ pull-down to GND. The RC time constants sequence STBY before MUTE, per datasheet Fig. 17 single-signal control. D7 is free |
 | Channel A in | Arduino D9 (sin) via 1.2 kΩ + 100 nF RC |
 | Channel B in | Arduino D10 (cos) via 1.2 kΩ + 100 nF RC |
 | Channel A out | tower wire 1 (winding A) |

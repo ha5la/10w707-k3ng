@@ -10,7 +10,6 @@
 void setup() {
   dds_init();       // first: forces amp into standby/mute before anything else
   position_init();
-  servo_init();
   gs232_init();
   buttons_init();
   display_init();

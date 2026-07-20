@@ -8,11 +8,12 @@
 #define PIN_DRIVE_SIN     9   // OC1A — winding W1 (tower wire 1)
 #define PIN_DRIVE_COS     10  // OC1B — winding W2 (tower wire 4)
 
-// TDA7294 MUTE/STBY, driven directly (no ULN2803 — the relays are gone and in
-// single-supply mode the amp's -Vs reference is Arduino GND). HIGH = play.
-// Fit a 10k pull-down on each amp pin so the amps stay muted during MCU reset.
-#define PIN_AMP_MUTE      6   // amp MUTE   (HIGH = un-muted)
-#define PIN_AMP_STBY      7   // amp STAND-BY (HIGH = running)
+// TDA7294 MUTE + STBY driven together from one pin (datasheet Fig. 17
+// single-signal control): the per-pin RCs (10k+10u mute, 22k+10u stby)
+// sequence standby-on before mute-release, and the reverse on shutdown.
+// HIGH = play; a 10k pull-down on the line keeps the amps silent through
+// MCU reset. D7 is free.
+#define PIN_AMP_ENABLE    6
 
 #define PIN_AZ            A0  // position pot via two-stage RC filter
 

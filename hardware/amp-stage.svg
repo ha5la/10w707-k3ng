@@ -152,7 +152,7 @@
   <text x="818" y="476" fill="#111">100n</text>
 
   <!-- MUTE line -->
-  <text x="66" y="432" fill="#111">D6 MUTE</text>
+  <text x="66" y="432" fill="#111">D6 AMP EN</text>
   <g stroke="#111" stroke-width="2" fill="none">
     <line stroke="#111" stroke-width="2" x1="135" y1="440" x2="300" y2="440"/>
     <rect stroke="#111" stroke-width="2" fill="none" x="300" y="430" width="60" height="20"/>
@@ -173,9 +173,7 @@
   <text x="134" y="502" text-anchor="end" fill="#111">10k</text>
 
   <!-- STBY line -->
-  <text x="60" y="482" fill="#111">D7 STBY</text>
   <g stroke="#111" stroke-width="2" fill="none">
-    <line stroke="#111" stroke-width="2" x1="165" y1="490" x2="300" y2="490"/>
     <rect stroke="#111" stroke-width="2" fill="none" x="300" y="480" width="60" height="20"/>
     <line stroke="#111" stroke-width="2" x1="360" y1="490" x2="470" y2="490"/>
     <line stroke="#111" stroke-width="2" x1="410" y1="490" x2="410" y2="513"/>
@@ -183,15 +181,15 @@
     <line stroke="#111" stroke-width="2" x1="398" y1="523" x2="422" y2="523"/>
     <line stroke="#111" stroke-width="2" x1="410" y1="523" x2="410" y2="700"/>
   </g>
+  <g stroke="#111" stroke-width="2" fill="none">
+    <line x1="280" y1="440" x2="280" y2="490"/>
+    <line x1="280" y1="490" x2="300" y2="490"/>
+  </g>
   <text x="315" y="472" fill="#111">22k</text>
   <text x="394" y="510" text-anchor="end" fill="#111">10µ</text>
   <!-- STBY pulldown -->
   <g stroke="#111" stroke-width="2" fill="none">
-    <line stroke="#111" stroke-width="2" x1="185" y1="490" x2="185" y2="520"/>
-    <rect stroke="#111" stroke-width="2" fill="none" x="175" y="520" width="20" height="60"/>
-    <line stroke="#111" stroke-width="2" x1="185" y1="580" x2="185" y2="700"/>
   </g>
-  <text x="199" y="554" fill="#111">10k</text>
 
   <!-- pin1 to GND -->
   <g stroke="#111" stroke-width="2" fill="none">
@@ -242,11 +240,11 @@
     <circle cx="425" cy="180" r="3.2"/><circle cx="1085" cy="180" r="3.2"/>
     <circle cx="430" cy="600" r="3.2"/>
     <circle cx="755" cy="350" r="3.2"/><circle cx="770" cy="350" r="3.2"/><circle cx="800" cy="350" r="3.2"/>
-    <circle cx="150" cy="440" r="3.2"/><circle cx="450" cy="440" r="3.2"/>
-    <circle cx="185" cy="490" r="3.2"/><circle cx="410" cy="490" r="3.2"/>
+    <circle cx="150" cy="440" r="3.2"/><circle cx="280" cy="440" r="3.2"/><circle cx="450" cy="440" r="3.2"/>
+    <circle cx="410" cy="490" r="3.2"/>
     <circle cx="530" cy="60" r="3.2"/><circle cx="630" cy="60" r="3.2"/>
     <circle cx="990" cy="60" r="3.2"/><circle cx="1035" cy="60" r="3.2"/><circle cx="1085" cy="60" r="3.2"/>
-    <circle cx="150" cy="700" r="3.2"/><circle cx="185" cy="700" r="3.2"/>
+    <circle cx="150" cy="700" r="3.2"/>
     <circle cx="410" cy="700" r="3.2"/><circle cx="430" cy="700" r="3.2"/>
     <circle cx="450" cy="700" r="3.2"/><circle cx="462" cy="700" r="3.2"/>
     <circle cx="530" cy="700" r="3.2"/><circle cx="630" cy="700" r="3.2"/>
@@ -255,6 +253,6 @@
   </g>
 
   <!-- footer notes -->
-  <text x="80" y="736" font-size="12" fill="#666">One channel shown — build two. Shared once: +52 V, GND, VREF divider (may be shared), D6/D7 lines and their 10k pull-downs.</text>
+  <text x="80" y="736" font-size="12" fill="#666">One channel shown — build two. Shared once: +52 V, GND, VREF divider (may be shared), the D6 enable line + its 10k pull-down (RCs sequence STBY/MUTE, datasheet Fig. 17).</text>
   <text x="80" y="754" font-size="12" fill="#666">Inputs: D9 (sin) / D10 (cos). Outputs: tower wire 1 (winding A) / tower wire 4 (winding B). Motor common = tower wire 5 = GND. Gain 1+22k/1.2k ≈ 19.3.</text>
 </svg>

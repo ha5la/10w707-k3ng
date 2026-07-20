@@ -25,7 +25,7 @@ void position_init() {
   }
 }
 
-uint16_t position_raw() {
+static uint16_t position_raw() {
   // 16x oversample: the two-stage RC removed the fast noise; the residual
   // ripple acts as dither, so decimating the sum yields a 12-bit reading.
   uint16_t sum = 0;

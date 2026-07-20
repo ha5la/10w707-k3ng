@@ -15,15 +15,14 @@ void test_idle_outputs_midscale_and_muted() {
   TEST_ASSERT_EQUAL_UINT16(128, OCR1B);
   TEST_ASSERT_TRUE(dds_idle());
   run_dds_ms(10);
-  TEST_ASSERT_EQUAL(LOW, mock_pin_out[PIN_AMP_MUTE]);
-  TEST_ASSERT_EQUAL(LOW, mock_pin_out[PIN_AMP_STBY]);
+  TEST_ASSERT_EQUAL(LOW, mock_pin_out[PIN_AMP_ENABLE]);
 }
 
 void test_soft_start_reaches_full_amplitude() {
   dds_run(600, DDS_CW);
   run_dds_ms(400);
   TEST_ASSERT_LESS_THAN(255, dds_get_amp());  // still ramping at 400 ms
-  TEST_ASSERT_EQUAL(HIGH, mock_pin_out[PIN_AMP_MUTE]);
+  TEST_ASSERT_EQUAL(HIGH, mock_pin_out[PIN_AMP_ENABLE]);
   run_dds_ms(200);
   TEST_ASSERT_EQUAL(255, dds_get_amp());      // full by ~510 ms
 }

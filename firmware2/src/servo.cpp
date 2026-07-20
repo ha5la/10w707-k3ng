@@ -8,8 +8,6 @@ static servo_state state = SERVO_IDLE;
 static int16_t target_deg10;
 static uint32_t last_tick_ms;
 
-void servo_init() {}
-
 servo_state servo_get_state() { return state; }
 int16_t servo_get_target_deg10() { return target_deg10; }
 

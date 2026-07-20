@@ -3,7 +3,6 @@
 
 enum servo_state : uint8_t { SERVO_IDLE, SERVO_GOTO, SERVO_MAN_CW, SERVO_MAN_CCW };
 
-void servo_init();
 void servo_goto(int16_t target_deg10);
 void servo_manual_cw();
 void servo_manual_ccw();

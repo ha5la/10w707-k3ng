@@ -19,10 +19,10 @@ single-supply single-ended mode, ~52 V rail → windings; motor common to GND):
 - direction = sign of the 90° phase offset — **no relays**
 - no run capacitor — full torque at every speed, soft start from standstill
 
-Amp MUTE/STBY are sequenced directly from D6/D7 (HIGH = play; no ULN2803 —
-nothing needs a coil driver anymore). 10 k pull-downs on the amp pins keep the
-amps muted during MCU reset, so the motor is dead silent and
-disconnected-equivalent when idle, and there is no power-on thump.
+Amp MUTE and STBY are driven together from one pin, D6 (HIGH = play; datasheet
+Fig. 17 single-signal control — the per-pin RCs sequence standby before mute).
+A 10 k pull-down keeps the amps muted during MCU reset, so the motor is dead
+silent and disconnected-equivalent when idle, with no power-on thump. D7 free.
 
 ## Module map
 

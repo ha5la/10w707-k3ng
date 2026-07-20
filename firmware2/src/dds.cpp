@@ -71,10 +71,8 @@ ISR(TIMER2_COMPA_vect) {
 void dds_init() {
   pinMode(PIN_DRIVE_SIN, OUTPUT);
   pinMode(PIN_DRIVE_COS, OUTPUT);
-  pinMode(PIN_AMP_MUTE, OUTPUT);
-  pinMode(PIN_AMP_STBY, OUTPUT);
-  digitalWrite(PIN_AMP_MUTE, LOW);   // LOW = muted (pull-downs hold this in reset)
-  digitalWrite(PIN_AMP_STBY, LOW);   // LOW = standby
+  pinMode(PIN_AMP_ENABLE, OUTPUT);
+  digitalWrite(PIN_AMP_ENABLE, LOW);  // muted+standby (pull-down holds this in reset)
 
   // Timer1: fast PWM 8-bit, non-inverting on OC1A/OC1B, no prescale (62.5 kHz)
   TCCR1A = _BV(COM1A1) | _BV(COM1B1) | _BV(WGM10);
@@ -166,7 +164,6 @@ void dds_tick(uint32_t now_ms) {
 
   // Amp powered whenever driving (or about to re-drive after a reversal);
   // muted and in standby when truly silent.
-  const uint8_t on = (a > 0 || amp_target > 0 || dir_pending) ? HIGH : LOW;
-  digitalWrite(PIN_AMP_STBY, on);
-  digitalWrite(PIN_AMP_MUTE, on);
+  digitalWrite(PIN_AMP_ENABLE,
+               (a > 0 || amp_target > 0 || dir_pending) ? HIGH : LOW);
 }
