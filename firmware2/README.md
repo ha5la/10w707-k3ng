@@ -66,3 +66,7 @@ reversal-through-zero sequencing, button interlocks, soft limits. CI runs
 them before every AVR build (`.github/workflows/firmware2.yml`). Write the
 test first when adding behavior — the mocks in `test/mocks/` control the
 clock, ADC, pins and EEPROM.
+
+Coverage: every push publishes a browsable per-line HTML map to GitHub Pages
+(<https://ha5la.github.io/10w707-k3ng/>). Locally:
+`pio test -e coverage && gcovr --root . --filter src/ --html-details -o cov.html`

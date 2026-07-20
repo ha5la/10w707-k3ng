@@ -4,10 +4,13 @@ on:
   push:
   workflow_dispatch:
 
+concurrency:
+  group: firmware2-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,3 +35,54 @@ jobs:
 
       - name: Build (old + new bootloader variants)
         run: pio run --project-dir firmware2 -e nano_old -e nano_new
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio2-${{ runner.os }}-${{ hashFiles('firmware2/platformio.ini') }}
+          restore-keys: pio2-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PlatformIO + gcovr
+        run: pip install platformio gcovr
+
+      - name: Run tests with gcov instrumentation
+        run: pio test --project-dir firmware2 -e coverage
+
+      - name: Generate HTML coverage report
+        run: |
+          mkdir -p site
+          cd firmware2
+          gcovr --root . --filter src/ --print-summary \
+                --html-title "10W707 firmware2 coverage" \
+                --html-details -o ../site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy-coverage:
+    needs: coverage
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
