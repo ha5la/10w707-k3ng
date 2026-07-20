@@ -1,0 +1,34 @@
+name: firmware2 (quadrature drive)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio2-${{ runner.os }}-${{ hashFiles('firmware2/platformio.ini') }}
+          restore-keys: pio2-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Unit tests (native, host-side)
+        run: pio test --project-dir firmware2 -e native
+
+      - name: Build (old + new bootloader variants)
+        run: pio run --project-dir firmware2 -e nano_old -e nano_new

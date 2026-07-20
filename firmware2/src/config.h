@@ -37,20 +37,24 @@
 #define DRIVE_FREQ_MIN_DHZ   50   //  5 Hz crawl (approach speed)
 #define DRIVE_FREQ_MAX_DHZ  600   // 60 Hz full speed
 
-// V/f amplitude law: amp = AMP_FLOOR + ((dHz - FREQ_MIN) * AMP_SLOPE) >> 8.
-// AMP 255 = full output = 18 V RMS per winding (52 V rail assumed).
-// AMP_FLOOR compensates the ~6 ohm winding IR drop at crawl speed.
+// V/f amplitude law: linear from AMP_FLOOR at FREQ_MIN to 255 at FREQ_MAX
+// (exact at both endpoints). AMP 255 = full output = 18 V RMS per winding
+// (52 V rail). AMP_FLOOR compensates the ~6 ohm winding IR at crawl speed.
 #define DRIVE_AMP_FLOOR      70
-#define DRIVE_AMP_SLOPE      86   // reaches ~255 at 600 dHz
 
-// Soft start/stop: amplitude slews one step per DDS tick (2 ms) -> ~0.5 s 0..255
+// Soft start: +1 amplitude step per 2 ms tick -> ~0.5 s 0..255.
+// Stop/limit ramp-down is faster (stop means stop): -3 per tick -> ~0.17 s.
+// Direction reversals always ramp down through zero before the phase flips.
 #define DRIVE_AMP_SLEW_MS    2
+#define DRIVE_AMP_DOWN_STEP  3
 
 // ---- Servo ------------------------------------------------------------------
 #define SERVO_TICK_MS        20
 #define SERVO_DEADBAND_DEG10 20   // +/- 2.0 degrees
 #define SERVO_TAPER_DEG10    150  // start slowing below 15 degrees of error
-#define SERVO_SOFT_LIMIT_DEG10 30 // block manual drive within 3 deg of end stop
+// Block manual drive within 6 deg of an end stop: covers the ramp-down coast
+// (~7 deg/s during the 0.17 s stop ramp) plus the ~0.3 s position-filter lag.
+#define SERVO_SOFT_LIMIT_DEG10 60
 
 // ---- Position ---------------------------------------------------------------
 // Quadrature-drive sensing: motor common (tower 5 = pot wiper) is GND; A0

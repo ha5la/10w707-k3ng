@@ -17,3 +17,8 @@ void dds_stop();
 void dds_tick(uint32_t now_ms);
 // True once dds_stop() has fully ramped down (safe to change direction).
 bool dds_idle();
+
+// Introspection (display, debugging, unit tests).
+uint8_t dds_get_amp();        // current slewed amplitude, 0..255
+dds_dir dds_get_dir();        // direction currently applied to the outputs
+uint16_t dds_get_freq_dhz();  // frequency currently applied, deci-Hz

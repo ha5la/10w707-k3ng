@@ -49,6 +49,15 @@ static volatile uint8_t  quad_offset; // +64 (CW) or -64 (CCW) table entries
 
 static uint8_t  amp_target;
 static uint32_t last_slew_ms;
+static dds_dir  active_dir = DDS_CW;
+static uint16_t active_freq_dhz;
+static bool     dir_pending;
+static dds_dir  pending_dir;
+static uint16_t pending_freq_dhz;
+
+uint8_t dds_get_amp() { return amp; }
+dds_dir dds_get_dir() { return active_dir; }
+uint16_t dds_get_freq_dhz() { return active_freq_dhz; }
 
 ISR(TIMER2_COMPA_vect) {
   phase += phase_inc;
@@ -78,32 +87,63 @@ void dds_init() {
   TCCR2B = _BV(CS21) | _BV(CS20);
   OCR2A  = DDS_SAMPLE_TOP;
   TIMSK2 = _BV(OCIE2A);
+
+  // Defined start state (also gives unit tests a clean reset)
+  noInterrupts();
+  phase = 0;
+  phase_inc = 0;
+  quad_offset = 64;
+  amp = 0;
+  interrupts();
+  amp_target = 0;
+  active_dir = DDS_CW;
+  active_freq_dhz = 0;
+  dir_pending = false;
 }
 
 static uint8_t vf_amplitude(uint16_t freq_dhz) {
-  uint16_t a = DRIVE_AMP_FLOOR +
-               (((uint32_t)(freq_dhz - DRIVE_FREQ_MIN_DHZ) * DRIVE_AMP_SLOPE) >> 8);
-  return a > 255 ? 255 : (uint8_t)a;
+  // Linear V/f, exact at both endpoints (FLOOR at FREQ_MIN, 255 at FREQ_MAX)
+  return DRIVE_AMP_FLOOR +
+         (uint8_t)(((uint32_t)(freq_dhz - DRIVE_FREQ_MIN_DHZ) *
+                    (255 - DRIVE_AMP_FLOOR)) /
+                   (DRIVE_FREQ_MAX_DHZ - DRIVE_FREQ_MIN_DHZ));
 }
 
-void dds_run(uint16_t freq_dhz, dds_dir dir) {
-  if (freq_dhz < DRIVE_FREQ_MIN_DHZ) freq_dhz = DRIVE_FREQ_MIN_DHZ;
-  if (freq_dhz > DRIVE_FREQ_MAX_DHZ) freq_dhz = DRIVE_FREQ_MAX_DHZ;
+static void apply(uint16_t freq_dhz, dds_dir dir) {
   const uint16_t inc = ((uint32_t)freq_dhz * DDS_INC_MUL) >> 16;
   const uint8_t q = (dir == DDS_CW) ? 64 : (uint8_t)-64;
   noInterrupts();
   phase_inc = inc;
   quad_offset = q;
   interrupts();
+  active_dir = dir;
+  active_freq_dhz = freq_dhz;
   amp_target = vf_amplitude(freq_dhz);
+}
+
+void dds_run(uint16_t freq_dhz, dds_dir dir) {
+  if (freq_dhz < DRIVE_FREQ_MIN_DHZ) freq_dhz = DRIVE_FREQ_MIN_DHZ;
+  if (freq_dhz > DRIVE_FREQ_MAX_DHZ) freq_dhz = DRIVE_FREQ_MAX_DHZ;
+  if (dir != active_dir && amp > 0) {
+    // Reversal while energized: ramp down through zero first; dds_tick flips
+    // the phase offset only once the field is silent.
+    dir_pending = true;
+    pending_dir = dir;
+    pending_freq_dhz = freq_dhz;
+    amp_target = 0;
+  } else {
+    dir_pending = false;
+    apply(freq_dhz, dir);
+  }
 }
 
 void dds_stop() {
   amp_target = 0;
+  dir_pending = false;
 }
 
 bool dds_idle() {
-  return amp_target == 0 && amp == 0;
+  return amp_target == 0 && amp == 0 && !dir_pending;
 }
 
 void dds_tick(uint32_t now_ms) {
@@ -111,12 +151,22 @@ void dds_tick(uint32_t now_ms) {
   last_slew_ms = now_ms;
 
   uint8_t a = amp;
-  if (a < amp_target) a++;
-  else if (a > amp_target) a--;
-  else return;
+  if (a < amp_target) {
+    a++;  // gentle start
+  } else if (a > amp_target) {
+    a = (a > amp_target + DRIVE_AMP_DOWN_STEP) ? a - DRIVE_AMP_DOWN_STEP
+                                               : amp_target;  // firm stop
+  }
   amp = a;
 
-  // Amp powered whenever we drive; muted and in standby when silent.
-  digitalWrite(PIN_AMP_STBY, a == 0 ? LOW : HIGH);
-  digitalWrite(PIN_AMP_MUTE, a == 0 ? LOW : HIGH);
+  if (a == 0 && dir_pending) {
+    dir_pending = false;
+    apply(pending_freq_dhz, pending_dir);
+  }
+
+  // Amp powered whenever driving (or about to re-drive after a reversal);
+  // muted and in standby when truly silent.
+  const uint8_t on = (a > 0 || amp_target > 0 || dir_pending) ? HIGH : LOW;
+  digitalWrite(PIN_AMP_STBY, on);
+  digitalWrite(PIN_AMP_MUTE, on);
 }
