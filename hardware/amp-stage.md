@@ -16,11 +16,14 @@ Bring-up: start with the boost at ~30 V, raise to 52 V when clean.
 
 **4700 µF/63 V low-ESR at the boost output is required**, on top of the
 1000 µF/63 V + 100 nF at each chip's pins 13/15. A single-ended amp draws a
-half-wave rectified current from the rail — 1.2 A at the crest against a 0.4 A
-average — and the converter's loop answers that step with a 14 V p-p, 0.5 ms
-burst, which dragged the rail down enough to put a 1.7 V dip in the output
-crest. Measured on channel A at 17.5 V RMS/60 Hz with the cap fitted: sag at
-the chip 0.93 V p-p, ripple 0.25 V p-p typical, output residual 0.69 %.
+half-wave rectified current from the rail — 1.1 A at the crest against a 0.36 A
+average into a 22 Ω load — and the converter's loop answers that step with a
+14 V p-p, 0.5 ms burst *at its own terminals*, which dragged the rail down enough
+to put a 1.7 V dip in the output crest. (At the chip, 70 cm of wire away, the
+same burst measures 1.6 V p-p before the local decoupling is moved onto pins
+13/15 and 0.88 V after — moving it does not fix the crest.) Measured on channel A
+at 17.5 V RMS/60 Hz with the cap fitted: sag at the chip 0.93 V p-p, ripple
+0.25 V p-p typical, output residual 0.69 %.
 
 ## TDA7294 pinout (Multiwatt15, top view; TAB = −Vs → bolts bare to grounded heatsink)
 
@@ -95,7 +98,7 @@ DDS fundamental after the two-pole RC ≈ 1.75 V RMS max → trimmer to ≈ 0.93
 Set each channel's trimmer on the dummy load; match the two channels.
 
 Headroom: **V_pk ≤ rail/2 − sag − V_sat**, with V_sat ≈ 0.7 V measured at
-1.2 A and sag ≈ 0.6 V peak with the bulk cap fitted. At 52 V that caps the
+1.1 A and sag ≈ 0.6 V peak with the bulk cap fitted. At 52 V that caps the
 winding at 24.7 V pk = 17.5 V RMS, so the design point leaves no margin —
 raise the rail rather than the trimmer if more is needed.
 

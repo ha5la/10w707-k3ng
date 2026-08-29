@@ -26,7 +26,7 @@ Setup photos (1936 px wide to match the screenshots, EXIF stripped):
 
 ## TDA7294 amplifier bring-up — 2026-08-28/29
 
-Channel A on a 52 V single supply into a 20 Ω dummy load (2× 10 Ω 20 W), driven
+Channel A on a 52 V single supply into a 22 Ω 25 W dummy load, driven
 by firmware2 over GS-232 serial. CH1 = amplifier output, CH2 as noted. Written
 up in `blog/2026-08-29-chasing-a-notch.md`.
 
@@ -36,7 +36,7 @@ up in `blog/2026-08-29-chasing-a-notch.md`.
 | `amp-02-52v-crest-notch.png` | 52 V, 17.7 V RMS: a 2 V, 0.5 ms V-notch at every crest, second horn higher than the first (1.9 % residual) |
 | `amp-03-pwm-carrier.png` | 100 µs/div on the rising slope: 62.5 kHz Timer1 carrier surviving the single input RC pole, 2.96 V p-p — smallest at the crest, as d·(1−d) predicts |
 | `amp-04-rail-burst-at-boost.png` | CH2 AC-coupled at the boost output: 15 V p-p, 0.5 ms burst of ringing at exactly the notch, plus ~1 V of 60 Hz sag from the half-wave load |
-| `amp-05-rail-clean-at-chip.png` | Decoupling moved onto pins 13/15: burst down from 14 to 0.88 V p-p at the chip — and the crest notch unchanged at −1.67 V. The negative result that redirected the hunt |
+| `amp-05-rail-clean-at-chip.png` | Decoupling moved onto pins 13/15: ripple at the chip 0.88 V p-p worst case, against 1.6 V p-p there beforehand — the 14 V p-p burst is a converter-terminal phenomenon, not a chip-side one. Crest notch unchanged at −1.67 V: the negative result that redirected the hunt |
 | `amp-06-bootstrap-constant.png` | CH1 pin 14, CH2 pin 6, both DC at 20 V/div: the gap holds 14.75–15.05 V right through the crest, ruling out bootstrap collapse |
 | `amp-07-fixed-17v5.png` | 4700 µF at the boost output: crest deviation −0.14 V, residual 0.69 %, 24.74 V pk = 17.5 V RMS, rail sag at the chip 0.93 V p-p |
 
