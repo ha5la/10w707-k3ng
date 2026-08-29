@@ -43,35 +43,52 @@
   <text x="60" y="288" font-size="11" fill="#666">0–5 V PWM,</text>
   <text x="60" y="302" font-size="11" fill="#666">mid 2.5 V</text>
   <g stroke="#111" stroke-width="2" fill="none">
-    <line stroke="#111" stroke-width="2" x1="100" y1="270" x2="130" y2="270"/>
-    <rect stroke="#111" stroke-width="2" fill="none" x="130" y="260" width="60" height="20"/>
-    <line stroke="#111" stroke-width="2" x1="190" y1="270" x2="245" y2="270"/>
-    <rect stroke="#111" stroke-width="2" fill="none" x="245" y="260" width="60" height="20"/>
-    <line stroke="#111" stroke-width="2" x1="252" y1="284" x2="298" y2="256"/>
-    <line stroke="#111" stroke-width="2" x1="298" y1="256" x2="289" y2="257"/>
-    <line stroke="#111" stroke-width="2" x1="298" y1="256" x2="296" y2="265"/>
-    <line stroke="#111" stroke-width="2" x1="305" y1="270" x2="320" y2="270"/>
-    <line stroke="#111" stroke-width="2" x1="322" y1="258" x2="322" y2="282"/>
-    <line stroke="#111" stroke-width="2" x1="332" y1="258" x2="332" y2="282"/>
-    <line stroke="#111" stroke-width="2" x1="334" y1="270" x2="470" y2="270"/>
+    <line stroke="#111" stroke-width="2" x1="100" y1="270" x2="120" y2="270"/>
+    <rect stroke="#111" stroke-width="2" fill="none" x="120" y="260" width="40" height="20"/>
+    <line stroke="#111" stroke-width="2" x1="160" y1="270" x2="200" y2="270"/>
+    <rect stroke="#111" stroke-width="2" fill="none" x="200" y="260" width="40" height="20"/>
+    <line stroke="#111" stroke-width="2" x1="240" y1="270" x2="315" y2="270"/>
+    <line stroke="#111" stroke-width="2" x1="315" y1="270" x2="315" y2="285"/>
+    <rect stroke="#111" stroke-width="2" fill="none" x="305" y="285" width="20" height="60"/>
+    <line stroke="#111" stroke-width="2" x1="315" y1="345" x2="315" y2="357"/>
+    <line stroke="#111" stroke-width="2" x1="301" y1="357" x2="329" y2="357"/>
+    <line stroke="#111" stroke-width="2" x1="306" y1="363" x2="324" y2="363"/>
+    <line stroke="#111" stroke-width="2" x1="311" y1="369" x2="319" y2="369"/>
+    <line stroke="#111" stroke-width="2" x1="357" y1="315" x2="328" y2="315"/>
+    <line stroke="#111" stroke-width="2" x1="328" y1="315" x2="337" y2="311"/>
+    <line stroke="#111" stroke-width="2" x1="328" y1="315" x2="337" y2="319"/>
+    <line stroke="#111" stroke-width="2" x1="357" y1="303" x2="357" y2="327"/>
+    <line stroke="#111" stroke-width="2" x1="367" y1="303" x2="367" y2="327"/>
+    <line stroke="#111" stroke-width="2" x1="369" y1="315" x2="378" y2="315"/>
+    <line stroke="#111" stroke-width="2" x1="378" y1="315" x2="378" y2="270"/>
+    <line stroke="#111" stroke-width="2" x1="378" y1="270" x2="470" y2="270"/>
   </g>
-  <text x="138" y="252" fill="#111">1.2k</text>
-  <text x="243" y="252" fill="#111">10k trim</text>
-  <text x="338" y="262" fill="#111" font-size="11">+</text>
-  <text x="308" y="300" fill="#111">4.7µ</text>
-  <text x="296" y="318" font-size="11" fill="#666">2.5 V | 26 V</text>
+  <text x="122" y="252" fill="#111">1.2k</text>
+  <text x="202" y="252" fill="#111">1.2k</text>
+  <text x="315" y="262" text-anchor="middle" fill="#111">10k trim</text>
+  <text x="371" y="300" fill="#111" font-size="11">+</text>
+  <text x="362" y="344" text-anchor="middle" fill="#111">4.7µ</text>
+  <text x="335" y="362" font-size="11" fill="#666">2.5 V | 26 V</text>
 
-  <!-- 100n shunt at input node -->
+  <!-- two-pole input filter: 100n shunt after each 1.2k -->
   <g stroke="#111" stroke-width="2" fill="none">
-    <line stroke="#111" stroke-width="2" x1="215" y1="270" x2="215" y2="307"/>
-    <line stroke="#111" stroke-width="2" x1="203" y1="307" x2="227" y2="307"/>
-    <line stroke="#111" stroke-width="2" x1="203" y1="317" x2="227" y2="317"/>
-    <line stroke="#111" stroke-width="2" x1="215" y1="317" x2="215" y2="340"/>
-    <line stroke="#111" stroke-width="2" x1="201" y1="340" x2="229" y2="340"/>
-    <line stroke="#111" stroke-width="2" x1="206" y1="346" x2="224" y2="346"/>
-    <line stroke="#111" stroke-width="2" x1="211" y1="352" x2="219" y2="352"/>
+    <line stroke="#111" stroke-width="2" x1="180" y1="270" x2="180" y2="307"/>
+    <line stroke="#111" stroke-width="2" x1="168" y1="307" x2="192" y2="307"/>
+    <line stroke="#111" stroke-width="2" x1="168" y1="317" x2="192" y2="317"/>
+    <line stroke="#111" stroke-width="2" x1="180" y1="317" x2="180" y2="340"/>
+    <line stroke="#111" stroke-width="2" x1="166" y1="340" x2="194" y2="340"/>
+    <line stroke="#111" stroke-width="2" x1="171" y1="346" x2="189" y2="346"/>
+    <line stroke="#111" stroke-width="2" x1="176" y1="352" x2="184" y2="352"/>
+    <line stroke="#111" stroke-width="2" x1="265" y1="270" x2="265" y2="307"/>
+    <line stroke="#111" stroke-width="2" x1="253" y1="307" x2="277" y2="307"/>
+    <line stroke="#111" stroke-width="2" x1="253" y1="317" x2="277" y2="317"/>
+    <line stroke="#111" stroke-width="2" x1="265" y1="317" x2="265" y2="340"/>
+    <line stroke="#111" stroke-width="2" x1="251" y1="340" x2="279" y2="340"/>
+    <line stroke="#111" stroke-width="2" x1="256" y1="346" x2="274" y2="346"/>
+    <line stroke="#111" stroke-width="2" x1="261" y1="352" x2="269" y2="352"/>
   </g>
-  <text x="232" y="316" fill="#111">100n</text>
+  <text x="163" y="316" text-anchor="end" fill="#111">100n</text>
+  <text x="248" y="316" text-anchor="end" fill="#111">100n</text>
 
   <!-- IN+ bias to VREF -->
   <g stroke="#111" stroke-width="2" fill="none">
@@ -120,7 +137,8 @@
     <line stroke="#111" stroke-width="2" x1="727" y1="290" x2="755" y2="290"/>
     <line stroke="#111" stroke-width="2" x1="755" y1="290" x2="755" y2="350"/>
   </g>
-  <text x="698" y="272" fill="#111">22µ</text>
+  <text x="700" y="268" fill="#111">22µ/63V</text>
+  <text x="709" y="283" fill="#111" font-size="11">+</text>
 
   <!-- OUT chain -->
   <g stroke="#111" stroke-width="2" fill="none">
@@ -236,7 +254,7 @@
 
   <!-- junction dots -->
   <g fill="#111">
-    <circle cx="215" cy="270" r="3.2"/><circle cx="400" cy="270" r="3.2"/>
+    <circle cx="180" cy="270" r="3.2"/><circle cx="265" cy="270" r="3.2"/><circle cx="400" cy="270" r="3.2"/>
     <circle cx="425" cy="180" r="3.2"/><circle cx="1085" cy="180" r="3.2"/>
     <circle cx="430" cy="600" r="3.2"/>
     <circle cx="755" cy="350" r="3.2"/><circle cx="770" cy="350" r="3.2"/><circle cx="800" cy="350" r="3.2"/>
@@ -254,5 +272,5 @@
 
   <!-- footer notes -->
   <text x="80" y="736" font-size="12" fill="#666">One channel shown — build two. Shared once: +52 V, GND, VREF divider (may be shared), the D6 enable line + its 10k pull-down (RCs sequence STBY/MUTE, datasheet Fig. 17).</text>
-  <text x="80" y="754" font-size="12" fill="#666">Inputs: D9 (sin) / D10 (cos). Outputs: tower wire 1 (winding A) / tower wire 4 (winding B). Motor common = tower wire 5 = GND. Gain 1+22k/1.2k ≈ 19.3.</text>
+  <text x="80" y="754" font-size="12" fill="#666">Inputs: D9 (sin) / D10 (cos) through the two-pole RC (62.5 kHz carrier down to ~65 mV p-p at the output). Outputs: tower wire 1 (winding A) / tower wire 4 (winding B). Motor common = tower wire 5 = GND. Gain 1+22k/1.2k ≈ 19.3.</text>
 </svg>

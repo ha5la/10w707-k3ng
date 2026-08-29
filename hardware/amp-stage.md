@@ -23,7 +23,7 @@ Bring-up: start with the boost at ~30 V, raise to 52 V when clean.
 | 3 | IN+ | signal in (biased to VREF) |
 | 4 | IN+MUTE | VREF (same DC as IN+ → no step when muting) |
 | 5, 11, 12 | N.C. | — |
-| 6 | BOOTSTRAP | 22 µF to OUT |
+| 6 | BOOTSTRAP | 22 µF/63 V to OUT, **+ toward pin 6** — it sits ≈ Vs/2 above OUT, and swings above the +Vs rail on positive peaks |
 | 7 | +Vs (signal) | +52 V |
 | 8 | −Vs (signal) | GND |
 | 9 | ST-BY | 22 kΩ ← AMP_EN line (+10 µF at pin to GND) |
@@ -46,6 +46,19 @@ Component notes — corners chosen for 5 Hz drive, not audio:
   the corner at 15 Hz and lose 10 dB at the 5 Hz crawl.) This cap is also what
   aligns the levels: the Arduino side sits at 2.5 V DC, the amp side at
   VREF ≈ 26 V — the cap absorbs the difference, only the AC swing passes.
+- **Two-pole input filter — 1.2 kΩ + 100 nF twice.** One pole leaves a
+  62.5 kHz triangle of ≈ 0.33 V p-p, which the ×19.3 gain turns into ~3 V p-p
+  on the winding (measured 2.96 V p-p mid-slope, 0.94 V p-p at the crest, where
+  the PWM duty approaches its extreme and the d·(1−d) residue collapses). Two
+  poles take that to ~65 mV p-p. The cost at 60 Hz is 7.7° of lag and 0.9 % of
+  amplitude — identical in both channels, so the quadrature is untouched; at
+  5 Hz it is 0.6°. It also buys back ~0.5 V of headroom at the crest and keeps
+  the carrier's harmonics off 35 m of cable.
+- **10 k trim wired as a divider**: top to the 1.2 k/100 n node, bottom to GND,
+  wiper to C_in. A series rheostat would only reach 22/(22+10) = 0.69× against
+  the 22 k bias impedance — short of the 0.53× the levels below need — and would
+  leave the wiper with no DC path, so C_in stays charged to VREF and dumps into
+  the Arduino pin on connection.
 - **Feedback cap = 220 µF / 50 V, + toward IN−**: in single-supply operation it
   charges to VREF (≈26 V), hence the voltage rating; 1.2 k × 220 µF puts the
   gain corner at 0.6 Hz. (The datasheet's 22 µF would roll gain off below 6 Hz.)
@@ -58,8 +71,8 @@ Component notes — corners chosen for 5 Hz drive, not audio:
 |-----|-----------|
 | GND | boost −out, both channels, motor common (tower wire 5 + shield), Arduino GND |
 | AMP_EN line | Arduino D6 → all four series resistors (both chips' MUTE 10 kΩ and STBY 22 kΩ); one 10 kΩ pull-down to GND. The RC time constants sequence STBY before MUTE, per datasheet Fig. 17 single-signal control. D7 is free |
-| Channel A in | Arduino D9 (sin) via 1.2 kΩ + 100 nF RC |
-| Channel B in | Arduino D10 (cos) via 1.2 kΩ + 100 nF RC |
+| Channel A in | Arduino D9 (sin) via the two-pole RC (1.2 kΩ + 100 nF, twice) |
+| Channel B in | Arduino D10 (cos) via the two-pole RC (1.2 kΩ + 100 nF, twice) |
 | Channel A out | tower wire 1 (winding A) |
 | Channel B out | tower wire 4 (winding B) |
 
@@ -69,7 +82,7 @@ meet at one point. Keep the two 4700 µF caps' return path short.
 
 ## Levels
 
-DDS fundamental after RC ≈ 1.77 V RMS max → trimmer to ≈ 0.93 V RMS →
+DDS fundamental after the two-pole RC ≈ 1.75 V RMS max → trimmer to ≈ 0.93 V RMS →
 ×19.3 → **18 V RMS** at the winding at 60 Hz (design flux, 0.3 V/Hz).
 Set each channel's trimmer on the dummy load; match the two channels.
 
@@ -95,7 +108,12 @@ Recalibrate `O`/`F` after the rewire (calibration is stored in ohms now).
 
 ## Bring-up checklist
 
-1. Boost at ~30 V, no load, both TDA7294 muted: check VREF ≈ Vs/2, OUT ≈ Vs/2.
+1. Boost at ~30 V, no load: check VREF ≈ Vs/2. Then jumper AMP_EN to +5 V (not
+   from D6 — the firmware drives it low) and check OUT ≈ Vs/2 and pin 6 a few
+   volts below +Vs (measured 25.2 V on a 30 V rail — the datasheet specifies no
+   quiescent bootstrap voltage; what matters is that it is neither at OUT nor at
+   the rail). In standby the output stage is off and OUT floats, so those two
+   nodes only read true in play.
 2. 22 Ω dummy loads, 60 Hz drive: trim both channels to equal amplitude;
    scope for oscillation (Zobel fitted), feel heatsink. (22 Ω ≈ |Z| of a
    winding at 60 Hz — measured 20 V / 1 A, mostly inductive; the 6 Ω figure
