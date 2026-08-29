@@ -14,6 +14,14 @@ figure; the single-supply pattern below follows the TDA7293 datasheet's
 The chip sees 52 V total (= ±26 V equivalent; allowed 20–80 V).
 Bring-up: start with the boost at ~30 V, raise to 52 V when clean.
 
+**4700 µF/63 V low-ESR at the boost output is required**, on top of the
+1000 µF/63 V + 100 nF at each chip's pins 13/15. A single-ended amp draws a
+half-wave rectified current from the rail — 1.2 A at the crest against a 0.4 A
+average — and the converter's loop answers that step with a 14 V p-p, 0.5 ms
+burst, which dragged the rail down enough to put a 1.7 V dip in the output
+crest. Measured on channel A at 17.5 V RMS/60 Hz with the cap fitted: sag at
+the chip 0.93 V p-p, ripple 0.25 V p-p typical, output residual 0.69 %.
+
 ## TDA7294 pinout (Multiwatt15, top view; TAB = −Vs → bolts bare to grounded heatsink)
 
 | Pin | Function | Our connection |
@@ -78,13 +86,18 @@ Component notes — corners chosen for 5 Hz drive, not audio:
 
 Star-ground at the boost output: power returns (Zobel, output caps' loads,
 bulk caps) and signal returns (VREF divider, feedback caps, input networks)
-meet at one point. Keep the two 4700 µF caps' return path short.
+meet at one point. Keep the output caps' return path short.
 
 ## Levels
 
 DDS fundamental after the two-pole RC ≈ 1.75 V RMS max → trimmer to ≈ 0.93 V RMS →
 ×19.3 → **18 V RMS** at the winding at 60 Hz (design flux, 0.3 V/Hz).
 Set each channel's trimmer on the dummy load; match the two channels.
+
+Headroom: **V_pk ≤ rail/2 − sag − V_sat**, with V_sat ≈ 0.7 V measured at
+1.2 A and sag ≈ 0.6 V peak with the bulk cap fitted. At 52 V that caps the
+winding at 24.7 V pk = 17.5 V RMS, so the design point leaves no margin —
+raise the rail rather than the trimmer if more is needed.
 
 The output cap + 20 Ω winding form a 1.7 Hz high-pass: at the 5 Hz crawl this
 costs ~0.5 dB and ~19° phase — equal in both channels, so the 90° quadrature
